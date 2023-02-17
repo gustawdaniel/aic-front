@@ -1,5 +1,7 @@
 <script lang="ts" setup>
 import Login from "~/components/Login.vue";
+
+const config = useRuntimeConfig()
 </script>
 
 <template>
@@ -18,6 +20,8 @@ import Login from "~/components/Login.vue";
             <Login/>
           </div>
         </client-only>
+
+        <pre>{{config}}</pre>
       </div>
     </div>
   </div>

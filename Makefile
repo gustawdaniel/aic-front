@@ -6,3 +6,6 @@ node_modules: package.json
 
 up: node_modules
 	npm run dev
+
+up-build:
+	node .output/server/index.mjs
