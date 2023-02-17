@@ -14,6 +14,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - name: prepare env
+        run: |
+          ENV=$(cat << EOF
+          GOOGLE_CLIENT_ID=980557834863-garc39g6lp2ir8hlseppmerels6eeql6.apps.googleusercontent.com
+          API_URL=https://api.aic.preciselab.io          
+          EOF
+          )
+          echo "$ENV" > .env
       - name: Build the Docker image
         run: docker build . --file Dockerfile --tag registry.digitalocean.com/main/aic-front
       - name: Login to registry
