@@ -4,7 +4,7 @@ services:
   app:
     image: registry.digitalocean.com/main/aic-front
     ports:
-      - "3000:3000"
+      - "3200:3200"
     env_file:
       - .env
     command: 'node .output/server/index.mjs'
