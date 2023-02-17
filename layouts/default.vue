@@ -23,11 +23,17 @@ onMounted(() => {
 
 })
 
-// if (token.value) {
-//   console.log("token", token.value);
-// } else {
-//   router.push('/login');
-// }
+if (token.value) {
+  console.log("token", token.value);
+} else {
+  console.log("location.href",);
+
+  if(!location.href.endsWith('/login')) {
+    location.href = '/login';
+  }
+}
+
+
 </script>
 
 <template>
