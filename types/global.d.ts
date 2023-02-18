@@ -9,6 +9,10 @@ declare global {
     interface Window {
         googleLoginCallback: (userData: GoogleAuthenticatedResponse) => void;
         google: any
+        HW_config: {
+            selector: string
+            account:  string
+        }
     }
 }
 

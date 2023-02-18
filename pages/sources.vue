@@ -4,13 +4,16 @@ import {useToken} from '~/composables/token';
 import Swal from 'sweetalert2'
 import Loading from 'vue-loading-overlay';
 import 'vue-loading-overlay/dist/css/index.css';
+import {useModal} from "#imports";
+import AddSource from "~/components/dialogs/AddSource.vue";
+import {useSources} from "~/composables/sources";
 
 const config = useRuntimeConfig()
 const token = useToken();
 
 const isLoading = ref<boolean>(false);
 
-const sources = ref<Array<{ id: string, url: string, type: string, _count: { requests: number } }>>([])
+const sources = useSources()
 
 async function loadSources() {
   isLoading.value = true;
@@ -27,12 +30,32 @@ onMounted(async () => {
   return loadSources()
 })
 
+const modal = useModal();
+
 function addSource() {
-  return Swal.fire(
-      'Not implemented!',
-      `This button will be available soon`,
-      'warning'
-  );
+  modal.value = AddSource
+
+
+  // return Swal.fire(
+  //     'Not implemented!',
+  //     `This button will be available soon`,
+  //     'warning'
+  // );
+}
+
+async function askForDelete(sourceId: string) {
+  const yes = confirm(`Are you sure? This operation is not possible to revert and will remove all articles from given source.`);
+  if(yes) {
+    isLoading.value = true;
+    await axios.delete(config.public.apiUrl + '/source/' + sourceId, {
+      headers: {
+        Authorization: `Bearer ${token.value}`
+      }
+    })
+    isLoading.value = false;
+
+    sources.value = sources.value.filter(source => source.id !== sourceId);
+  }
 }
 
 async function request(sourceId: string) {
@@ -123,6 +146,10 @@ async function request(sourceId: string) {
                           class="sr-only">, {{ source.url }}</span></span>
                     </td>
 
+                    <td class="relative whitespace-nowrap py-4 pl-3 pr-6 text-right text-sm font-medium sm:pr-0">
+                      <button @click="askForDelete(source.id)" class="text-red-600 hover:text-red-900">Delete<span
+                          class="sr-only">, {{ source.url }}</span></button>
+                    </td>
 <!--                    TODO -->
 <!--                    <td class="relative whitespace-nowrap py-4 pl-3 pr-6 text-right text-sm font-medium sm:pr-0">-->
 <!--                      <a href="#" class="text-indigo-600 hover:text-indigo-900">Edit<span-->

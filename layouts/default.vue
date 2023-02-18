@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import {useRouter} from "#imports";
+import {useModal, useRouter} from "#imports";
 
 import {useUser} from "~/composables/user";
 import {useToken} from "~/composables/token";
@@ -19,7 +19,7 @@ useHead({
 })
 
 onMounted(() => {
-  console.log("t",token.value);
+  console.log("t", token.value);
 
 })
 
@@ -28,17 +28,18 @@ if (token.value) {
 } else {
   console.log("location.href",);
 
-  if(!location.href.endsWith('/login')) {
+  if (!location.href.endsWith('/login')) {
     location.href = '/login';
   }
 }
-
 
 </script>
 
 <template>
   <div>
     <slot/>
+
+    <ModalFrame/>
   </div>
 </template>
 

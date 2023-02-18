@@ -146,7 +146,7 @@ async function rejectArticle(articleId: string) {
               <tbody class="divide-y divide-gray-200">
               <tr v-for="article in articles.filter(art => art.state === openTab)" :key="article.id">
                 <td class="whitespace-nowrap py-4 pl-6 pr-3 text-sm font-medium text-gray-900 sm:pl-0">
-                  <a :href="article.request.url" target="_blank">{{ getArticleTitle(article) }}</a>
+                  <a :href="article.request.url" target="_blank" class="text-ellipsis">{{ getArticleTitle(article) }}</a>
                 </td>
                 <td class="whitespace-nowrap py-4 px-3 text-sm text-gray-500">{{ article.components.length }}</td>
                 <!--                <td class="whitespace-nowrap py-4 px-3 text-sm text-gray-500">{{ article.state }}</td>-->

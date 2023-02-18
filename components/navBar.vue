@@ -23,6 +23,18 @@ const userNavigation = [
   {name: 'Settings', href: '/settings'},
   {name: 'Sign out', href: '/logout'},
 ]
+
+window.HW_config = {
+  selector: ".hw", // CSS selector where to inject the badge
+  account:  "xGGP6x"
+}
+
+useHead({
+  script: [{
+    async: true,
+    src: 'https://cdn.headwayapp.co/widget.js'
+  }]
+})
 </script>
 
 <template>
@@ -43,6 +55,8 @@ const userNavigation = [
           </div>
         </div>
         <div class="hidden sm:ml-6 sm:flex sm:items-center">
+          <div class="hw"></div>
+
           <button type="button"
                   class="rounded-full bg-white p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
             <span class="sr-only">View notifications</span>
@@ -102,6 +116,8 @@ const userNavigation = [
             <div class="text-base font-medium text-gray-800">{{ user.full_name }}</div>
             <div class="text-sm font-medium text-gray-500">{{ user.email }}</div>
           </div>
+
+
           <button type="button"
                   class="ml-auto flex-shrink-0 rounded-full bg-white p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
             <span class="sr-only">View notifications</span>
