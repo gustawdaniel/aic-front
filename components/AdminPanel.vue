@@ -11,13 +11,7 @@ const isLoading = ref<boolean>(false);
 const config = useRuntimeConfig()
 const token = useToken();
 
-function getMessage(e: unknown) {
-  if (e instanceof Error) {
-    return e.message
-  } else {
-    return `unknown error`
-  }
-}
+
 
 async function loadUsers() {
   try {
@@ -44,6 +38,7 @@ onMounted(() => {
 })
 
 import { KeyIcon } from '@heroicons/vue/20/solid'
+import {getMessage} from "~/composables/getMessage";
 
 const user = useUser();
 

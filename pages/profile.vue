@@ -35,16 +35,20 @@ const user = useUser();
                 </div>
               </div>
 
-              <div v-if="user.roles.includes('admin')" class="mt-5 flex justify-center sm:mt-0">
+              <div v-if="user.roles && user.roles.includes('admin')" class="mt-5 flex justify-center sm:mt-0">
                 <soab
                     class="flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50">
                   Admin
                 </soab>
               </div>
             </div>
+
+            <ApiKeyInput class="mt-6"/>
+
           </div>
 
-          <AdminPanel v-if="user.roles.includes('admin')"/>
+
+          <AdminPanel v-if="user.roles && user.roles.includes('admin')"/>
 
 
           <!--              <pre>{{user}}</pre>-->

@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 import {Disclosure, DisclosureButton, DisclosurePanel, Menu, MenuButton, MenuItem, MenuItems} from '@headlessui/vue'
-import {Bars3Icon, BellIcon, XMarkIcon} from '@heroicons/vue/24/outline'
+import {Bars3Icon, BellIcon, XMarkIcon, MagnifyingGlassIcon} from '@heroicons/vue/24/outline'
 import {useUser} from "~/composables/user";
 import {useToken} from "~/composables/token";
-import {useRoute} from "#imports";
+import {useRoute, useSearch} from "#imports";
 
 const token = useToken()
 const user = useUser()
@@ -26,7 +26,7 @@ const userNavigation = [
 
 window.HW_config = {
   selector: ".hw", // CSS selector where to inject the badge
-  account:  "xGGP6x"
+  account: "xGGP6x"
 }
 
 useHead({
@@ -35,6 +35,8 @@ useHead({
     src: 'https://cdn.headwayapp.co/widget.js'
   }]
 })
+
+const serach = useSearch();
 </script>
 
 <template>
@@ -50,12 +52,28 @@ useHead({
           </div>
           <div class="hidden sm:-my-px sm:ml-6 sm:flex sm:space-x-8">
             <nuxt-link v-for="item in navigation" :key="item.name" :to="item.href"
-               :class="[item.current ? 'border-indigo-500 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700', 'inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium']"
-               :aria-current="item.current ? 'page' : undefined">{{ item.name }}</nuxt-link>
+                       :class="[item.current ? 'border-indigo-500 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700', 'inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium']"
+                       :aria-current="item.current ? 'page' : undefined">{{ item.name }}
+            </nuxt-link>
           </div>
         </div>
         <div class="hidden sm:ml-6 sm:flex sm:items-center">
           <div class="hw"></div>
+
+          <div class="flex flex-1 justify-center px-2 lg:ml-6 lg:justify-end" v-show="serach.enabled">
+            <div class="w-full max-w-lg lg:max-w-xs">
+              <label for="search" class="sr-only">Search</label>
+              <div class="relative text-gray-400 focus-within:text-gray-600 ">
+                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 ">
+                  <MagnifyingGlassIcon class="h-5 w-5" aria-hidden="true"/>
+                </div>
+                <input id="search"
+                       v-model="serach.text"
+                       class="block w-full rounded-md border border-transparent bg-white py-2 pl-10 pr-3 leading-5 text-gray-900 placeholder-gray-500 focus:border-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-indigo-600 sm:text-sm"
+                       placeholder="Search" type="search" name="search"/>
+              </div>
+            </div>
+          </div>
 
           <button type="button"
                   class="rounded-full bg-white p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
@@ -80,9 +98,11 @@ useHead({
               <MenuItems
                   class="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                 <MenuItem v-for="item in userNavigation" :key="item.name" v-slot="{ active }">
-                  <nuxt-link :to="item.href" :class="[active ? 'bg-gray-100' : '', 'block px-4 py-2 text-sm text-gray-700']">{{
+                  <nuxt-link :to="item.href"
+                             :class="[active ? 'bg-gray-100' : '', 'block px-4 py-2 text-sm text-gray-700']">{{
                       item.name
-                    }}</nuxt-link>
+                    }}
+                  </nuxt-link>
                 </MenuItem>
               </MenuItems>
             </transition>

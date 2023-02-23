@@ -3,15 +3,17 @@ import Loading from 'vue-loading-overlay';
 import 'vue-loading-overlay/dist/css/index.css';
 import axios from "axios";
 import {useToken} from "~/composables/token";
-import {computed, useRouter} from "#imports";
-import {CheckIcon, XMarkIcon, BookOpenIcon} from '@heroicons/vue/24/solid'
+import {computed, useModal, useRouter, useSearch} from "#imports";
+import {CheckIcon, XMarkIcon, BookOpenIcon, ArrowUturnLeftIcon} from '@heroicons/vue/24/solid'
 import {Article} from "~/intefaces/Article";
 import {ucfirst} from "~/composables/ucfirst";
 import {getArticleTitle} from "~/composables/getArticleTitle";
+import MoveToQueue from "~/components/dialogs/MoveToQueue.vue";
+import {useArticles} from "~/composables/articles";
 
 const router = useRouter();
 
-const articles = ref<Article[]>([]);
+const articles = useArticles()
 const isLoading = ref<boolean>(false);
 const config = useRuntimeConfig()
 const token = useToken();
@@ -27,8 +29,15 @@ async function loadArticles() {
   articles.value = data;
 }
 
+const search = useSearch();
+
 onMounted(() => {
   loadArticles();
+  search.value.enabled = true;
+});
+
+onUnmounted(() => {
+  search.value.enabled = false;
 })
 
 const openTab = ref<string>('new');
@@ -54,15 +63,13 @@ function readArticle(articleId: string) {
 
 async function queueArticle(articleId: string) {
   const article = articles.value.find((art) => art.id === articleId);
-  if (article) {
-    article.state = 'queued'
-  }
 
-  const {data} = await axios.put(config.public.apiUrl + `/article/${articleId}`,{state: 'queued'}, {
-    headers: {
-      Authorization: `Bearer ${token.value}`
-    }
-  });
+  const modal = useModal();
+  modal.value.context = {
+    articles: [article]
+  }
+  modal.value.component = MoveToQueue;
+
 
   // todo notification
 }
@@ -73,7 +80,7 @@ async function rejectArticle(articleId: string) {
     article.state = 'rejected'
   }
 
-  const {data} = await axios.put(config.public.apiUrl + `/article/${articleId}`,{state: 'rejected'}, {
+  const {data} = await axios.put(config.public.apiUrl + `/article/${articleId}`, {state: 'rejected'}, {
     headers: {
       Authorization: `Bearer ${token.value}`
     }
@@ -81,6 +88,29 @@ async function rejectArticle(articleId: string) {
 
   // todo notification
 }
+
+async function moveToNewArticle(articleId: string) {
+  const article = articles.value.find((art) => art.id === articleId);
+  if (article) {
+    article.state = 'new'
+  }
+
+  const {data} = await axios.put(config.public.apiUrl + `/article/${articleId}`, {state: 'new'}, {
+    headers: {
+      Authorization: `Bearer ${token.value}`
+    }
+  });
+
+  // todo notification
+}
+
+const visibleArticles = computed<Article[]>(() => {
+  return articles.value
+      .filter(art => art.state === openTab.value)
+      .filter(art => search.value.text ? (
+          art.request.url.toLowerCase().includes(search.value.text.toLowerCase()) || getArticleTitle(art).toLowerCase().includes(search.value.text.toLowerCase())
+      ) : true)
+})
 
 </script>
 
@@ -144,9 +174,11 @@ async function rejectArticle(articleId: string) {
               </tr>
               </thead>
               <tbody class="divide-y divide-gray-200">
-              <tr v-for="article in articles.filter(art => art.state === openTab)" :key="article.id">
+              <tr v-for="article in visibleArticles" :key="article.id">
                 <td class="whitespace-nowrap py-4 pl-6 pr-3 text-sm font-medium text-gray-900 sm:pl-0">
-                  <a :href="article.request.url" target="_blank" class="text-ellipsis">{{ getArticleTitle(article) }}</a>
+                  <a :href="article.request.url" target="_blank" class="text-ellipsis">{{
+                      getArticleTitle(article).substring(0, 100).trim() + (getArticleTitle(article).length > 100 ? '...' : '')
+                    }}</a>
                 </td>
                 <td class="whitespace-nowrap py-4 px-3 text-sm text-gray-500">{{ article.components.length }}</td>
                 <!--                <td class="whitespace-nowrap py-4 px-3 text-sm text-gray-500">{{ article.state }}</td>-->
@@ -154,10 +186,16 @@ async function rejectArticle(articleId: string) {
                 <td class="relative whitespace-nowrap py-4 pl-3 pr-6 text-right text-sm font-medium sm:pr-0 flex">
                   <BookOpenIcon class="h-6 w-6 text-blue-500 cursor-pointer" @click="readArticle(article.id)"
                                 title="See how our system parsed this article"/>
-                  <CheckIcon class="h-6 w-6 text-green-500 cursor-pointer" @click="queueArticle(article.id)"
+                  <CheckIcon v-if="article.state === 'new'" class="h-6 w-6 text-green-500 cursor-pointer"
+                             @click="queueArticle(article.id)"
                              title="Pass article to AI processing with your prompts"/>
-                  <XMarkIcon class="h-6 w-6 text-red-500 cursor-pointer" @click="rejectArticle(article.id)"
+                  <XMarkIcon v-if="article.state === 'new'" class="h-6 w-6 text-red-500 cursor-pointer"
+                             @click="rejectArticle(article.id)"
                              title="Reject article - it will not be processed."/>
+                  <ArrowUturnLeftIcon v-if="article.state === 'rejected'" class="h-6 w-6 text-gray-500 cursor-pointer"
+                                      @click="moveToNewArticle(article.id)"
+                                      title="Return to New Articles."/>
+
 
                   <!--                      <span @click="request(article.id)" class="text-indigo-600 hover:text-indigo-900 cursor-pointer">Request<span-->
                   <!--                          class="sr-only">, {{ article.url }}</span></span>-->

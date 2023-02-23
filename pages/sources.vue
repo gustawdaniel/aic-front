@@ -33,7 +33,7 @@ onMounted(async () => {
 const modal = useModal();
 
 function addSource() {
-  modal.value = AddSource
+  modal.value.component = AddSource
 
 
   // return Swal.fire(

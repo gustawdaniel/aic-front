@@ -4,12 +4,12 @@ import {InformationCircleIcon} from '@heroicons/vue/24/outline'
 import {useModal, useToken} from "#imports";
 import axios from "axios";
 import {useSources} from "~/composables/sources";
-import {CodeActionKind} from "vscode-languageserver-types";
 import {Source} from "~/intefaces/Source";
 
 function closeModal() {
   const modal = useModal();
-  modal.value = undefined
+  modal.value.component = undefined
+  modal.value.context = undefined
 }
 
 const config = useRuntimeConfig();
