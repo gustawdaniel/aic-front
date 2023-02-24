@@ -4,12 +4,13 @@ import 'vue-loading-overlay/dist/css/index.css';
 import axios from "axios";
 import {useToken} from "~/composables/token";
 import {computed, useModal, useRouter, useSearch} from "#imports";
-import {CheckIcon, XMarkIcon, BookOpenIcon, ArrowUturnLeftIcon} from '@heroicons/vue/24/solid'
+import {CheckIcon, XMarkIcon, BookOpenIcon, ArrowUturnLeftIcon, CloudArrowUpIcon} from '@heroicons/vue/24/solid'
 import {Article} from "~/intefaces/Article";
 import {ucfirst} from "~/composables/ucfirst";
 import {getArticleTitle} from "~/composables/getArticleTitle";
 import MoveToQueue from "~/components/dialogs/MoveToQueue.vue";
 import {useArticles} from "~/composables/articles";
+import PublishConfirmation from "~/components/dialogs/PublishConfirmation.vue";
 
 const router = useRouter();
 
@@ -43,7 +44,7 @@ onUnmounted(() => {
 const openTab = ref<string>('new');
 
 const tabs = computed(() => {
-  const states = ['new', 'queued', 'rejected', 'verification', 'accepted'];
+  const states = ['new', 'queued', 'rejected', 'verification', 'published'];
 
   return states.map((state) => ({
     name: ucfirst(state),
@@ -72,6 +73,16 @@ async function queueArticle(articleId: string) {
 
 
   // todo notification
+}
+
+function confirmPublication(articleId: string) {
+  const article = articles.value.find((art) => art.id === articleId);
+  const modal = useModal();
+  modal.value.context = {
+    articles: [article]
+  }
+  modal.value.component = PublishConfirmation;
+
 }
 
 async function rejectArticle(articleId: string) {
@@ -192,6 +203,7 @@ const visibleArticles = computed<Article[]>(() => {
                   <XMarkIcon v-if="article.state === 'new'" class="h-6 w-6 text-red-500 cursor-pointer"
                              @click="rejectArticle(article.id)"
                              title="Reject article - it will not be processed."/>
+                  <CloudArrowUpIcon v-if="article.state === 'verification'" class="h-6 w-6 text-green-500 cursor-pointer"  @click="confirmPublication(article.id)" title="Publish on your platform."/>
                   <ArrowUturnLeftIcon v-if="article.state === 'rejected'" class="h-6 w-6 text-gray-500 cursor-pointer"
                                       @click="moveToNewArticle(article.id)"
                                       title="Return to New Articles."/>

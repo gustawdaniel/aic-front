@@ -115,9 +115,6 @@ const props = defineProps<{ articles: Article[] }>()
                   <NewspaperIcon class="h-5 w-5 flex-shrink-0 text-gray-400" aria-hidden="true"/>
                   <span class="ml-2 w-0 flex-1 truncate">{{ getArticleTitle(article) }}</span>
                 </div>
-                <!--                  <div class="ml-4 flex-shrink-0">-->
-                <!--                    <a href="#" class="font-medium text-indigo-600 hover:text-indigo-500">Download</a>-->
-                <!--                  </div>-->
               </li>
             </ul>
           </dd>

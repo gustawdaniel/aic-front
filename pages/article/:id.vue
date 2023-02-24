@@ -102,7 +102,12 @@ const classes = {
 <!--              <h2 class="text-2xl font-bold leading-10 tracking-tight text-gray-900">Frequently asked questions</h2>-->
               <dl class="mt-10  divide-y divide-gray-900/10">
                 <div v-for="(component, number) in article.components" :key="number" class="pt-8 lg:grid lg:grid-cols-12 lg:gap-8">
-                  <dt class="text-base font-semibold leading-7 text-gray-900 lg:col-span-1">{{ component.xpath[0] }}</dt>
+                  <dt class="text-base font-semibold leading-7 text-gray-900 lg:col-span-1">
+                    <div class="flex justify-between">
+                      <span>{{ component.xpath[0] }}</span>
+                      <span>{{component.finish_reason}}</span>
+                    </div>
+                  </dt>
                   <dd class="mt-4 lg:col-span-11 lg:mt-0">
                     <p class="text-base leading-7 text-gray-600">{{ component.text }}</p>
                   </dd>

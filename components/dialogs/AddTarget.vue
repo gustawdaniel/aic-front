@@ -6,6 +6,7 @@ import axios from "axios";
 import {useTargets} from "~/composables/targets";
 import {Target} from "~/intefaces/Target";
 import Swal from "sweetalert2";
+import {fixUrl} from "~/composables/helpers";
 
 function closeModal() {
   const modal = useModal();
@@ -25,21 +26,6 @@ const apiKey = ref<string>('');
 const token = useToken();
 
 const targets = useTargets();
-
-function addHttps(url: string): string {
-  return `https://` + url.replace(`https://`, '');
-}
-
-function removeEndingSlash(url: string): string {
-  if (url.endsWith("/")) {
-    return url.slice(0, -1);
-  }
-  return url;
-}
-
-function fixUrl(url: string): string {
-  return removeEndingSlash(addHttps(url));
-}
 
 async function addTarget() {
   if (url) {

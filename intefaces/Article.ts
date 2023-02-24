@@ -4,7 +4,7 @@ export interface ArticleComponent {
     "versions": string[]
 }
 
-export type ArticleState = 'new' | 'queued' | 'rejected' | 'verification' | 'accepted';
+export type ArticleState = 'new' | 'queued' | 'rejected' | 'verification' | 'published';
 
 export interface Article {
     id: string
