@@ -203,7 +203,8 @@ const visibleArticles = computed<Article[]>(() => {
                   <XMarkIcon v-if="article.state === 'new'" class="h-6 w-6 text-red-500 cursor-pointer"
                              @click="rejectArticle(article.id)"
                              title="Reject article - it will not be processed."/>
-                  <CloudArrowUpIcon v-if="article.state === 'verification'" class="h-6 w-6 text-green-500 cursor-pointer"  @click="confirmPublication(article.id)" title="Publish on your platform."/>
+                  <CloudArrowUpIcon v-if="['new', 'verification'].includes(article.state)" class="h-6 w-6 text-green-500 cursor-pointer"
+                                    @click="confirmPublication(article.id)" title="Publish on your platform."/>
                   <ArrowUturnLeftIcon v-if="article.state === 'rejected'" class="h-6 w-6 text-gray-500 cursor-pointer"
                                       @click="moveToNewArticle(article.id)"
                                       title="Return to New Articles."/>
