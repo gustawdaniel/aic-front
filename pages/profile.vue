@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 
 import {useUser} from "~/composables/user";
+import {useToken} from "#imports";
 
 const user = useUser();
-
 </script>
 
 <template>
@@ -18,9 +18,6 @@ const user = useUser();
       <!--      </header>-->
       <main>
         <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
-          <!-- Replace with your content -->
-          <!--          <div class="px-4 py-8 sm:px-0">-->
-          <!--            <div class="h-96 rounded-lg border-4 border-dashed border-gray-200">-->
 
           <div class="bg-white p-6">
             <div class="sm:flex sm:items-center sm:justify-between">
@@ -36,14 +33,18 @@ const user = useUser();
               </div>
 
               <div v-if="user.roles && user.roles.includes('admin')" class="mt-5 flex justify-center sm:mt-0">
-                <soab
+                <span
                     class="flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50">
                   Admin
-                </soab>
+                </span>
               </div>
             </div>
 
             <ApiKeyInput class="mt-6"/>
+
+            <AccessToken/>
+
+<!--            <p>User ID: {{user.id}}</p>-->
 
           </div>
 
@@ -51,11 +52,7 @@ const user = useUser();
           <AdminPanel v-if="user.roles && user.roles.includes('admin')"/>
 
 
-          <!--              <pre>{{user}}</pre>-->
 
-          <!--            </div>-->
-          <!--          </div>-->
-          <!-- /End replace -->
         </div>
       </main>
     </div>

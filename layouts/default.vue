@@ -15,8 +15,15 @@ useHead({
     async: true,
     src: 'https://accounts.google.com/gsi/client',
     defer: true
-  }]
+  }],
+  htmlAttrs: {
+    // 'data-theme': 'light'
+    // 'data-theme': 'cyberpunk'
+    'data-theme': 'wireframe'
+  }
 })
+
+// data-theme="cupcake"
 
 onMounted(() => {
   console.log("t", token.value);

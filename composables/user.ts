@@ -1,3 +1,3 @@
 export const useUser = () => {
-  return useCookie('user')
+  return useCookie<{email: string, avatar: string, full_name: string}>('user')
 }
