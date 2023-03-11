@@ -5,8 +5,10 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import {getMessage} from "~/composables/getMessage";
 import {useToken} from "~/composables/token";
-import {ref, useUser} from '#imports';
+import {ref, useQueues, useUser} from '#imports';
 import dayjs from "dayjs";
+import {uid} from "uid";
+import {setQueue} from "~/composables/queues";
 
 interface DialogResponse {
   finish_reason: string
@@ -33,7 +35,13 @@ const question = ref<string>('');
 async function askGpt3() {
   try {
     isLoading.value = true;
-    dialog.value.push({text: question.value, finish_reason: '', role: 'user', author: 'me', at: dayjs().format('HH:mm:ss')});
+    dialog.value.push({
+      text: question.value,
+      finish_reason: '',
+      role: 'user',
+      author: 'me',
+      at: dayjs().format('HH:mm:ss')
+    });
     const {data} = await axios.post<DialogResponse>(config.public.apiUrl + '/ask', {
       text: question.value
     }, {
@@ -41,10 +49,16 @@ async function askGpt3() {
         Authorization: `Bearer ${token.value}`
       }
     });
-    dialog.value.push({text: data.message.content, finish_reason: data.finish_reason, author: 'ai', role: data.message.role, at: dayjs().format('HH:mm:ss')});
+    dialog.value.push({
+      text: data.message.content,
+      finish_reason: data.finish_reason,
+      author: 'ai',
+      role: data.message.role,
+      at: dayjs().format('HH:mm:ss')
+    });
     question.value = '';
   } catch (e) {
-    Swal.fire(
+    await Swal.fire(
         'Error!',
         getMessage(e),
         'error'
@@ -67,6 +81,27 @@ async function scrollToBottom() {
   }
 }
 
+const queues = useQueues()
+
+async function testQueue() {
+  const index = uid();
+
+  setQueue({
+    type: 'debug',
+    id: index,
+    progress: 0
+  })
+
+  await axios.post<DialogResponse, undefined, { id: string, wait: number }>(config.public.apiUrl + '/queue/debug', {
+    id: index,
+    wait: 2000,
+  }, {
+    headers: {
+      Authorization: `Bearer ${token.value}`
+    }
+  });
+}
+
 const user = useUser();
 </script>
 
@@ -75,6 +110,7 @@ const user = useUser();
 
   <div class="min-h-full">
     <NavBar/>
+    <Gpt3ContextManager/>
 
     <loading v-model:active="isLoading"
              :can-cancel="false"
@@ -83,7 +119,7 @@ const user = useUser();
     <div class="py-10">
       <header>
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h1 class="text-3xl font-bold leading-tight tracking-tight text-gray-900">Dashboard</h1>
+          <h1 class="text-3xl font-bold leading-tight tracking-tight text-gray-900">Dashboard:</h1>
         </div>
       </header>
       <main>
@@ -133,6 +169,11 @@ const user = useUser();
 
             </div>
           </div>
+
+          <button class="btn" @click="testQueue">Button</button>
+
+
+          <pre>{{ queues }}</pre>
 
           <!-- /End replace -->
         </div>

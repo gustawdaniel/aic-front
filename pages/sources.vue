@@ -82,6 +82,7 @@ async function request(sourceId: string) {
 <template>
   <div class="min-h-full">
     <NavBar/>
+    <Gpt3ContextManager/>
 
     <loading v-model:active="isLoading"
              :can-cancel="false"

@@ -9,6 +9,7 @@ const user = useUser();
 <template>
   <div class="min-h-full">
     <NavBar/>
+    <Gpt3ContextManager/>
 
     <div class="py-10">
       <!--      <header>-->

@@ -1,3 +1,3 @@
-export function ucfirst(str: string): string {
+export function ucFirst(str: string): string {
     return str.charAt(0).toUpperCase() + str.slice(1);
 }

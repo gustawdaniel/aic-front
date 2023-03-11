@@ -6,6 +6,7 @@ import { InformationCircleIcon } from '@heroicons/vue/20/solid'
 <template>
   <div class="min-h-full">
     <NavBar/>
+    <Gpt3ContextManager/>
 
     <div class="py-10">
       <header>

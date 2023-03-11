@@ -3,10 +3,10 @@ import Loading from 'vue-loading-overlay';
 import 'vue-loading-overlay/dist/css/index.css';
 import axios from "axios";
 import {useToken} from "~/composables/token";
-import {computed, useModal, useRouter, useSearch} from "#imports";
-import {CheckIcon, XMarkIcon, BookOpenIcon, ArrowUturnLeftIcon, CloudArrowUpIcon} from '@heroicons/vue/24/solid'
+import {computed, useModal, useRouter, useSearch, useSelectedGpt3Contexts} from "#imports";
+import {CheckIcon, XMarkIcon, BookOpenIcon, ArrowUturnLeftIcon, CloudArrowUpIcon, TrashIcon} from '@heroicons/vue/24/solid'
 import {Article} from "~/intefaces/Article";
-import {ucfirst} from "~/composables/ucfirst";
+import {ucFirst} from "~/composables/ucfirst";
 import {getArticleTitle} from "~/composables/getArticleTitle";
 import MoveToQueue from "~/components/dialogs/MoveToQueue.vue";
 import {useArticles} from "~/composables/articles";
@@ -47,7 +47,7 @@ const tabs = computed(() => {
   const states = ['new', 'queued', 'rejected', 'verification', 'published'];
 
   return states.map((state) => ({
-    name: ucfirst(state),
+    name: ucFirst(state),
     id: state,
     count: articles.value.filter(art => art.state === state).length,
     current: openTab.value === state
@@ -70,9 +70,6 @@ async function queueArticle(articleId: string) {
     articles: [article]
   }
   modal.value.component = MoveToQueue;
-
-
-  // todo notification
 }
 
 function confirmPublication(articleId: string) {
@@ -115,6 +112,17 @@ async function moveToNewArticle(articleId: string) {
   // todo notification
 }
 
+async function remove(articleId: string) {
+  const {data} = await axios.delete(config.public.apiUrl + `/article/${articleId}`, {
+    headers: {
+      Authorization: `Bearer ${token.value}`
+    }
+  });
+
+  articles.value = articles.value.filter((art) => art.id !== articleId);
+
+}
+
 const visibleArticles = computed<Article[]>(() => {
   return articles.value
       .filter(art => art.state === openTab.value)
@@ -128,6 +136,7 @@ const visibleArticles = computed<Article[]>(() => {
 <template>
   <div class="min-h-full">
     <NavBar/>
+    <Gpt3ContextManager/>
 
     <loading v-model:active="isLoading"
              :can-cancel="false"
@@ -194,7 +203,7 @@ const visibleArticles = computed<Article[]>(() => {
                 <td class="whitespace-nowrap py-4 px-3 text-sm text-gray-500">{{ article.components.length }}</td>
                 <!--                <td class="whitespace-nowrap py-4 px-3 text-sm text-gray-500">{{ article.state }}</td>-->
 
-                <td class="relative whitespace-nowrap py-4 pl-3 pr-6 text-right text-sm font-medium sm:pr-0 flex">
+                <td class="whitespace-nowrap py-4 pl-3 pr-6 text-right text-sm font-medium sm:pr-0 flex">
                   <BookOpenIcon class="h-6 w-6 text-blue-500 cursor-pointer" @click="readArticle(article.id)"
                                 title="See how our system parsed this article"/>
                   <CheckIcon v-if="article.state === 'new'" class="h-6 w-6 text-green-500 cursor-pointer"
@@ -203,11 +212,15 @@ const visibleArticles = computed<Article[]>(() => {
                   <XMarkIcon v-if="article.state === 'new'" class="h-6 w-6 text-red-500 cursor-pointer"
                              @click="rejectArticle(article.id)"
                              title="Reject article - it will not be processed."/>
-                  <CloudArrowUpIcon v-if="['new', 'verification'].includes(article.state)" class="h-6 w-6 text-green-500 cursor-pointer"
+                  <CloudArrowUpIcon v-if="['new', 'verification'].includes(article.state)"
+                                    class="h-6 w-6 text-green-500 cursor-pointer"
                                     @click="confirmPublication(article.id)" title="Publish on your platform."/>
                   <ArrowUturnLeftIcon v-if="article.state === 'rejected'" class="h-6 w-6 text-gray-500 cursor-pointer"
                                       @click="moveToNewArticle(article.id)"
                                       title="Return to New Articles."/>
+                  <TrashIcon  class="h-6 w-6 text-red-500 cursor-pointer"
+                                      @click="remove(article.id)"
+                                      title="Remove article from database."/>
 
 
                   <!--                      <span @click="request(article.id)" class="text-indigo-600 hover:text-indigo-900 cursor-pointer">Request<span-->

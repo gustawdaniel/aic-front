@@ -2,20 +2,41 @@
 import {Article} from "~/intefaces/Article";
 import {getArticleTitle} from "~/composables/getArticleTitle";
 import {NewspaperIcon,} from '@heroicons/vue/20/solid'
-import {useModal, useToken} from "#imports";
+import {
+  useModal,
+  useToken,
+  useSelectedGpt3Contexts,
+  useHeaderPrompt,
+  useParagraphPrompt,
+  useCodePrompt, computed, useCodePromptEnabled, setQueue
+} from "#imports";
 import axios from "axios";
 import {useArticles} from "~/composables/articles";
+import {uid} from "uid";
 
 const modal = useModal()
 
-const header = ref<string>('');
-const text = ref<string>('');
-const code = ref<string>('');
+onMounted(() => {
+  headerPrompt.value.value = 'Przetłumacz ten nagłówek z polskiego na angielski';
+  paragraphPrompt.value.value = 'Przetłumacz ten tekst z polskiego na angielski';
+})
+
+const headerPrompt = useHeaderPrompt();
+const paragraphPrompt = useParagraphPrompt();
+const codePrompt = useCodePrompt();
+const codePromptEnabled = useCodePromptEnabled();
+
+const selectedContext = useSelectedGpt3Contexts();
+
+const header = computed<string>(() => headerPrompt.value.value);
+const text = computed<string>(() => paragraphPrompt.value.value);
+const code = computed<string>(() => codePrompt.value.value);
 
 const config = useRuntimeConfig();
 
 async function upsertProcessingTemplate(): Promise<string> {
   const {data} = await axios.post(config.public.apiUrl + `/processing-template`, {
+    context: selectedContext.value?.value ?? '',
     header: header.value,
     text: text.value,
     code: code.value,
@@ -36,7 +57,15 @@ async function moveArticlesToQueue() {
 
   console.log("processingTemplateId");
 
-  for(const {id} of props.articles) {
+  for (const {id} of props.articles) {
+
+    const queue_id = uid();
+
+    setQueue({
+      type: 'process-article',
+      id: queue_id,
+      progress: 0
+    })
 
     const article = articles.value.find((art) => art.id === id);
     if (article) {
@@ -44,7 +73,8 @@ async function moveArticlesToQueue() {
 
       const {data} = await axios.put(config.public.apiUrl + `/article/${article.id}`, {
         state: 'queued',
-        processing_template_id: processingTemplateId
+        processing_template_id: processingTemplateId,
+        queue_id
       }, {
         headers: {
           Authorization: `Bearer ${token.value}`
@@ -61,7 +91,8 @@ function closeModal() {
   modal.value.context = undefined;
 }
 
-const props = defineProps<{ articles: Article[] }>()
+const props = defineProps<{ articles: Article[] }>();
+
 </script>
 
 <template>
@@ -74,14 +105,30 @@ const props = defineProps<{ articles: Article[] }>()
       <dl>
         <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
           <dt class="text-sm font-medium text-gray-500">
+            <p class="mt-2">Role</p>
+          </dt>
+          <dd class=" text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+
+            <textarea v-if="selectedContext" type="text"
+                   disabled
+                   class="block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                   placeholder="As a helpful assistant 😇"
+                   v-model="selectedContext.value"
+            />
+            <p v-else class="text-gray-600 my-2">No context selected.</p>
+
+          </dd>
+        </div>
+        <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+          <dt class="text-sm font-medium text-gray-500">
             <p class="mt-2">Headers</p>
           </dt>
           <dd class=" text-sm text-gray-900 sm:col-span-2 sm:mt-0">
 
-            <input type="text"
+            <textarea type="text"
                    class="block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                    placeholder="Change title to more bold 😎"
-                   v-model="header"
+                   v-model="headerPrompt.value"
             />
 
           </dd>
@@ -89,20 +136,20 @@ const props = defineProps<{ articles: Article[] }>()
         <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
           <dt class="text-sm font-medium text-gray-500"><p class="mt-2">Texts</p></dt>
           <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
-            <input type="text"
+            <textarea type="text"
                    class="block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                    placeholder="Add little bit humor to this text 🤪"
-                   v-model="text"
+                   v-model="paragraphPrompt.value"
             />
           </dd>
         </div>
-        <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+        <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6" v-if="codePromptEnabled">
           <dt class="text-sm font-medium text-gray-500"><p class="mt-2">Code</p></dt>
           <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
-            <input type="text"
+            <textarea type="text"
                    class="block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                    placeholder="Rewrite this code to Rust 🦀"
-                   v-model="code"
+                   v-model="codePrompt.value"
             />
           </dd>
         </div>
