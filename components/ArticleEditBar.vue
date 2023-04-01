@@ -5,7 +5,7 @@ import {
   useSelectedArticleComponent,
   useSelectedGpt3Contexts,
   askGpt3,
-  computed, selectArticleComponent, syncArticle
+  computed, selectArticleComponent, syncArticle, handleError
 } from "#imports";
 import { Gpt3Message } from "~/intefaces/Gpt3Interface";
 import Swal from "sweetalert2";
@@ -41,11 +41,15 @@ async function askGpt(prompt: string, text: string) {
     answerText.value = answerText.value + '.'
   }, 100)
 
-  const data = await askGpt3(messages)
+  try {
+    const data = await askGpt3(messages)
 
-  clearInterval(interval);
+    clearInterval(interval);
 
-  answerText.value = data.message.content
+    answerText.value = data.message.content
+  } catch (e) {
+    handleError(e)
+  }
 }
 
 watch(selectedArticleComponent, (n) => {

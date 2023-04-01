@@ -35,19 +35,23 @@ onMounted(async () => {
 })
 
 async function setApiKey() {
-  await axios.patch(config.public.apiUrl + '/me?gpt3_api_key=1', {
-    gpt3_api_key: apiKey.value
-  }, {
-    headers: {
-      Authorization: `Bearer ${token.value}`
-    }
-  });
+  try {
+    await axios.patch(config.public.apiUrl + '/me?gpt3_api_key=1', {
+      gpt3_api_key: apiKey.value
+    }, {
+      headers: {
+        Authorization: `Bearer ${ token.value }`
+      }
+    });
 
-  await Swal.fire(
-      'You saved api key!',
-      `Now you can use AI to process your content!`,
-      'success'
-  );
+    await Swal.fire(
+        'You saved api key!',
+        `Now you can use AI to process your content!`,
+        'success'
+    );
+  } catch (e) {
+    handleError(e)
+  }
 }
 
 </script>

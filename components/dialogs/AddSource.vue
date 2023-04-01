@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import {DialogTitle} from '@headlessui/vue'
 import {InformationCircleIcon} from '@heroicons/vue/24/outline'
-import {useModal, useToken} from "#imports";
+import { handleError, useModal, useToken } from "#imports";
 import axios from "axios";
 import {useSources} from "~/composables/sources";
 import {Source} from "~/intefaces/Source";
@@ -25,13 +25,17 @@ function addHttps(url: string): string {
 
 async function addSource() {
   if (url) {
-    const {data} = await axios.post<Omit<Source, '_count'>>(config.public.apiUrl + '/source', {url: addHttps(url.value)}, {
-      headers: {
-        Authorization: `Bearer ${token.value}`
-      }
-    });
-    sources.value.push({...data, _count: {requests: 0}});
-    closeModal();
+    try {
+      const {data} = await axios.post<Omit<Source, '_count'>>(config.public.apiUrl + '/source', {url: addHttps(url.value)}, {
+        headers: {
+          Authorization: `Bearer ${ token.value }`
+        }
+      });
+      sources.value.push({...data, _count: {requests: 0}});
+      closeModal();
+    } catch (e) {
+      handleError(e)
+    }
   }
 }
 </script>

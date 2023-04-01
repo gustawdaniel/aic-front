@@ -19,14 +19,19 @@ const isLoading = ref<boolean>(false);
 const targets = useTargets()
 
 async function loadTargets() {
-  isLoading.value = true;
-  const {data} = await axios.get(config.public.apiUrl + '/target', {
-    headers: {
-      Authorization: `Bearer ${token.value}`
-    }
-  });
-  isLoading.value = false;
-  targets.value = data;
+  try {
+    isLoading.value = true;
+    const {data} = await axios.get(config.public.apiUrl + '/target', {
+      headers: {
+        Authorization: `Bearer ${ token.value }`
+      }
+    });
+    targets.value = data;
+  } catch (e) {
+    handleError(e)
+  } finally {
+    isLoading.value = false;
+  }
 }
 
 onMounted(async () => {

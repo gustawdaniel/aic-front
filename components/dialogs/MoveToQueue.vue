@@ -1,18 +1,18 @@
 <script lang="ts" setup>
-import {Article} from "~/intefaces/Article";
-import {getArticleTitle} from "~/composables/getArticleTitle";
-import {NewspaperIcon,} from '@heroicons/vue/20/solid'
+import { Article } from "~/intefaces/Article";
+import { getArticleTitle } from "~/composables/getArticleTitle";
+import { NewspaperIcon, } from '@heroicons/vue/20/solid'
 import {
   useModal,
   useToken,
   useSelectedGpt3Contexts,
   useHeaderPrompt,
   useParagraphPrompt,
-  useCodePrompt, computed, useCodePromptEnabled, setQueue
+  useCodePrompt, computed, useCodePromptEnabled, setQueue, handleError
 } from "#imports";
 import axios from "axios";
-import {useArticles} from "~/composables/articles";
-import {uid} from "uid";
+import { useArticles } from "~/composables/articles";
+import { uid } from "uid";
 
 const modal = useModal()
 
@@ -35,18 +35,23 @@ const code = computed<string>(() => codePrompt.value.value);
 const config = useRuntimeConfig();
 
 async function upsertProcessingTemplate(): Promise<string> {
-  const {data} = await axios.post(config.public.apiUrl + `/processing-template`, {
-    context: selectedContext.value?.value ?? '',
-    header: header.value,
-    text: text.value,
-    code: code.value,
-  }, {
-    headers: {
-      Authorization: `Bearer ${token.value}`
-    }
-  });
+  try {
+    const {data} = await axios.post(config.public.apiUrl + `/processing-template`, {
+      context: selectedContext.value?.value ?? '',
+      header: header.value,
+      text: text.value,
+      code: code.value,
+    }, {
+      headers: {
+        Authorization: `Bearer ${ token.value }`
+      }
+    });
 
-  return data.id;
+    return data.id;
+  } catch (e) {
+    handleError(e)
+    return '';
+  }
 }
 
 const token = useToken();
@@ -54,10 +59,15 @@ const articles = useArticles();
 
 async function moveArticlesToQueue() {
   const processingTemplateId = await upsertProcessingTemplate();
-
+  let error = null;
   console.log("processingTemplateId");
 
   for (const {id} of props.articles) {
+
+    if(error) {
+      handleError(error);
+      return;
+    }
 
     const queue_id = uid();
 
@@ -71,15 +81,19 @@ async function moveArticlesToQueue() {
     if (article) {
       article.state = 'queued'
 
-      const {data} = await axios.put(config.public.apiUrl + `/article/${article.id}`, {
-        state: 'queued',
-        processing_template_id: processingTemplateId,
-        queue_id
-      }, {
-        headers: {
-          Authorization: `Bearer ${token.value}`
-        }
-      });
+      try {
+        const {data} = await axios.put(config.public.apiUrl + `/article/${ article.id }`, {
+          state: 'queued',
+          processing_template_id: processingTemplateId,
+          queue_id
+        }, {
+          headers: {
+            Authorization: `Bearer ${ token.value }`
+          }
+        });
+      } catch (e) {
+        error = e;
+      }
     }
   }
 
@@ -110,10 +124,10 @@ const props = defineProps<{ articles: Article[] }>();
           <dd class=" text-sm text-gray-900 sm:col-span-2 sm:mt-0">
 
             <textarea v-if="selectedContext" type="text"
-                   disabled
-                   class="block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                   placeholder="As a helpful assistant 😇"
-                   v-model="selectedContext.value"
+                      disabled
+                      class="block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                      placeholder="As a helpful assistant 😇"
+                      v-model="selectedContext.value"
             />
             <p v-else class="text-gray-600 my-2">No context selected.</p>
 
@@ -126,9 +140,9 @@ const props = defineProps<{ articles: Article[] }>();
           <dd class=" text-sm text-gray-900 sm:col-span-2 sm:mt-0">
 
             <textarea type="text"
-                   class="block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                   placeholder="Change title to more bold 😎"
-                   v-model="headerPrompt.value"
+                      class="block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                      placeholder="Change title to more bold 😎"
+                      v-model="headerPrompt.value"
             />
 
           </dd>
@@ -137,9 +151,9 @@ const props = defineProps<{ articles: Article[] }>();
           <dt class="text-sm font-medium text-gray-500"><p class="mt-2">Texts</p></dt>
           <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
             <textarea type="text"
-                   class="block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                   placeholder="Add little bit humor to this text 🤪"
-                   v-model="paragraphPrompt.value"
+                      class="block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                      placeholder="Add little bit humor to this text 🤪"
+                      v-model="paragraphPrompt.value"
             />
           </dd>
         </div>
@@ -147,9 +161,9 @@ const props = defineProps<{ articles: Article[] }>();
           <dt class="text-sm font-medium text-gray-500"><p class="mt-2">Code</p></dt>
           <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
             <textarea type="text"
-                   class="block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                   placeholder="Rewrite this code to Rust 🦀"
-                   v-model="codePrompt.value"
+                      class="block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                      placeholder="Rewrite this code to Rust 🦀"
+                      v-model="codePrompt.value"
             />
           </dd>
         </div>

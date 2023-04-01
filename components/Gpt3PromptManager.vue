@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import {
-  deleteGpt3Prompts, getGpt3Prompts, setGpt3Prompt, useGpt3Prompts,
+  deleteGpt3Prompts, getGpt3Prompts, handleError, setGpt3Prompt, useGpt3Prompts,
   useSelectedGpt3Prompts
 } from "#imports";
 
@@ -31,8 +31,12 @@ async function edit(ctx: { id: string, value: string }): Promise<void> {
   await setGpt3Prompt(ctx);
 }
 
-onMounted(() => {
-  getGpt3Prompts()
+onMounted(async () => {
+  try {
+    await getGpt3Prompts()
+  } catch (e) {
+    handleError(e)
+  }
 })
 
 const promptCreationMode = ref<boolean>(true);
@@ -78,7 +82,6 @@ function select(ctx: { id: string, value: string }) {
                   ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
              placeholder="Prompt processing sentence"/>
     </div>
-
 
 
     <div class="mt-2 grid grid-cols-2 gap-2">

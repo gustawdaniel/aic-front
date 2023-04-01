@@ -1,7 +1,7 @@
 import {Article} from "~/intefaces/Article";
 import axios from "axios";
 import { useToken } from "~/composables/token";
-
+import {handleError} from '#imports'
 export const useArticles = () => {
   return useState<Article[]>('articles', () => [])
 }
@@ -18,12 +18,16 @@ export async function syncArticle() {
     throw new Error(`No article to sync`);
   }
 
-  await axios.put(config.public.apiUrl + `/article/${article.value.id}`, {
-    components: article.value.components,
-    state: article.value.state,
-  }, {
-    headers: {
-      Authorization: `Bearer ${token.value}`
-    }
-  });
+  try {
+    await axios.put(config.public.apiUrl + `/article/${ article.value.id }`, {
+      components: article.value.components,
+      state: article.value.state,
+    }, {
+      headers: {
+        Authorization: `Bearer ${ token.value }`
+      }
+    });
+  } catch (e) {
+    handleError(e)
+  }
 }

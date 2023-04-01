@@ -190,44 +190,55 @@ function confirmPublication(articleId: string) {
 }
 
 async function rejectArticle(articleId: string) {
-  const article = articles.value.find((art) => art.id === articleId);
-  if (article) {
-    article.state = 'rejected'
-  }
-
-  const {data} = await axios.put(config.public.apiUrl + `/article/${ articleId }`, {state: 'rejected'}, {
-    headers: {
-      Authorization: `Bearer ${ token.value }`
+  try {
+    const article = articles.value.find((art) => art.id === articleId);
+    if (article) {
+      article.state = 'rejected'
     }
-  });
 
-  // todo notification
+    const {data} = await axios.put(config.public.apiUrl + `/article/${ articleId }`, {state: 'rejected'}, {
+      headers: {
+        Authorization: `Bearer ${ token.value }`
+      }
+    });
+
+    // todo notification
+  } catch (e) {
+    handleError(e)
+  }
 }
 
 async function moveToNewArticle(articleId: string) {
-  const article = articles.value.find((art) => art.id === articleId);
-  if (article) {
-    article.state = 'new'
-  }
-
-  const {data} = await axios.put(config.public.apiUrl + `/article/${ articleId }`, {state: 'new'}, {
-    headers: {
-      Authorization: `Bearer ${ token.value }`
+  try {
+    const article = articles.value.find((art) => art.id === articleId);
+    if (article) {
+      article.state = 'new'
     }
-  });
 
-  // todo notification
+    const {data} = await axios.put(config.public.apiUrl + `/article/${ articleId }`, {state: 'new'}, {
+      headers: {
+        Authorization: `Bearer ${ token.value }`
+      }
+    });
+
+    // todo notification
+  } catch (e) {
+    handleError(e)
+  }
 }
 
 async function remove(articleId: string) {
-  const {data} = await axios.delete(config.public.apiUrl + `/article/${ articleId }`, {
-    headers: {
-      Authorization: `Bearer ${ token.value }`
-    }
-  });
+  try {
+    const {data} = await axios.delete(config.public.apiUrl + `/article/${ articleId }`, {
+      headers: {
+        Authorization: `Bearer ${ token.value }`
+      }
+    });
 
-  articles.value = articles.value.filter((art) => art.id !== articleId);
-
+    articles.value = articles.value.filter((art) => art.id !== articleId);
+  } catch (e) {
+    handleError(e)
+  }
 }
 
 const visibleArticles = computed<Article[]>(() => {

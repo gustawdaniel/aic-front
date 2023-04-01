@@ -69,14 +69,18 @@ async function testQueue() {
     progress: 0
   })
 
-  await axios.post<DialogResponse, undefined, { id: string, wait: number }>(config.public.apiUrl + '/queue/debug', {
-    id: index,
-    wait: 2000,
-  }, {
-    headers: {
-      Authorization: `Bearer ${token.value}`
-    }
-  });
+  try {
+    await axios.post<DialogResponse, undefined, { id: string, wait: number }>(config.public.apiUrl + '/queue/debug', {
+      id: index,
+      wait: 2000,
+    }, {
+      headers: {
+        Authorization: `Bearer ${ token.value }`
+      }
+    });
+  } catch (e) {
+    handleError(e)
+  }
 }
 
 const user = useUser();

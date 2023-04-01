@@ -4,7 +4,7 @@ import {useToken} from '~/composables/token';
 import Swal from 'sweetalert2'
 import Loading from 'vue-loading-overlay';
 import 'vue-loading-overlay/dist/css/index.css';
-import {useModal} from "#imports";
+import { handleError, useModal } from "#imports";
 import AddSource from "~/components/dialogs/AddSource.vue";
 import {useSources} from "~/composables/sources";
 
@@ -16,14 +16,19 @@ const isLoading = ref<boolean>(false);
 const sources = useSources()
 
 async function loadSources() {
-  isLoading.value = true;
-  const {data} = await axios.get(config.public.apiUrl + '/source', {
-    headers: {
-      Authorization: `Bearer ${token.value}`
-    }
-  });
-  isLoading.value = false;
-  sources.value = data;
+  try {
+    isLoading.value = true;
+    const {data} = await axios.get(config.public.apiUrl + '/source', {
+      headers: {
+        Authorization: `Bearer ${ token.value }`
+      }
+    });
+    sources.value = data;
+  } catch (e) {
+    handleError(e)
+  } finally {
+    isLoading.value = false;
+  }
 }
 
 onMounted(async () => {
@@ -60,20 +65,26 @@ async function askForDelete(sourceId: string) {
 
 async function request(sourceId: string) {
   console.log("sourceId", sourceId);
-  isLoading.value = true;
-  const {data} = await axios.post(config.public.apiUrl + '/request', {
-    source_id: sourceId
-  },{
-    headers: {
-      Authorization: `Bearer ${token.value}`
-    }
-  });
-  isLoading.value = false;
-  await Swal.fire(
-      'Content Collected!',
-      `It took only ${data.time}ms!`,
-      'success'
-  );
+  try {
+    isLoading.value = true;
+    const {data} = await axios.post(config.public.apiUrl + '/request', {
+      source_id: sourceId
+    }, {
+      headers: {
+        Authorization: `Bearer ${ token.value }`
+      }
+    });
+
+    await Swal.fire(
+        'Content Collected!',
+        `It took only ${data.time}ms!`,
+        'success'
+    )
+  } catch (e) {
+    handleError(e)
+  } finally {
+    isLoading.value = false;
+  }
 
   return loadSources();
 }

@@ -6,7 +6,7 @@ import {useToken} from '~/composables/token';
 import Swal from 'sweetalert2'
 import Loading from 'vue-loading-overlay';
 import 'vue-loading-overlay/dist/css/index.css';
-import {useModal} from "#imports";
+import { handleError, useModal } from "#imports";
 import AddTarget from "~/components/dialogs/AddTarget.vue";
 import {useTargets} from "~/composables/targets";
 
@@ -18,14 +18,19 @@ const isLoading = ref<boolean>(false);
 const targets = useTargets()
 
 async function loadTargets() {
-  isLoading.value = true;
-  const {data} = await axios.get(config.public.apiUrl + '/target', {
-    headers: {
-      Authorization: `Bearer ${token.value}`
-    }
-  });
-  isLoading.value = false;
-  targets.value = data;
+  try {
+    isLoading.value = true;
+    const {data} = await axios.get(config.public.apiUrl + '/target', {
+      headers: {
+        Authorization: `Bearer ${ token.value }`
+      }
+    });
+    targets.value = data;
+  } catch (e) {
+    handleError(e)
+  } finally {
+    isLoading.value = false;
+  }
 }
 
 onMounted(async () => {
@@ -48,15 +53,20 @@ function addTarget() {
 async function askForDelete(targetId: string) {
   const yes = confirm(`Are you sure? This operation is not possible to revert and will remove all articles from given target.`);
   if (yes) {
-    isLoading.value = true;
-    await axios.delete(config.public.apiUrl + '/target/' + targetId, {
-      headers: {
-        Authorization: `Bearer ${token.value}`
-      }
-    })
-    isLoading.value = false;
+    try {
+      isLoading.value = true;
+      await axios.delete(config.public.apiUrl + '/target/' + targetId, {
+        headers: {
+          Authorization: `Bearer ${ token.value }`
+        }
+      })
 
-    targets.value = targets.value.filter(target => target.id !== targetId);
+      targets.value = targets.value.filter(target => target.id !== targetId);
+    } catch (e) {
+      handleError(e)
+    } finally {
+      isLoading.value = false;
+    }
   }
 }
 

@@ -56,17 +56,18 @@ export async function getGpt3Prompts(): Promise<Gpt3Prompt[]> {
   const config = useRuntimeConfig()
   const token = useToken();
 
-  const {data} = await axios.get<Gpt3Prompt[]>(config.public.apiUrl + '/prompt', {
-    headers: {
-      Authorization: `Bearer ${token.value}`
-    }
-  });
+    const {data} = await axios.get<Gpt3Prompt[]>(config.public.apiUrl + '/prompt', {
+      headers: {
+        Authorization: `Bearer ${ token.value }`
+      }
+    });
 
-  const state = useGpt3Prompts();
-  data.forEach((ctx) => {
-    state.value.set(ctx.id, ctx);
-  });
+    const state = useGpt3Prompts();
+    data.forEach((ctx) => {
+      state.value.set(ctx.id, ctx);
+    });
 
-  return data
+    return data
+
 }
 

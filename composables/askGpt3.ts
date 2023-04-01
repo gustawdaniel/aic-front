@@ -1,6 +1,6 @@
-import axios, {AxiosResponse} from "axios";
-import {DialogResponse, Gpt3Message} from "~/intefaces/Gpt3Interface";
-import {useToken} from "~/composables/token";
+import axios, { AxiosResponse } from "axios";
+import { DialogResponse, Gpt3Message } from "~/intefaces/Gpt3Interface";
+import { useToken } from "~/composables/token";
 
 export const askGpt3 = async (messages: Gpt3Message[]): Promise<DialogResponse> => {
   const config = useRuntimeConfig()
@@ -10,9 +10,10 @@ export const askGpt3 = async (messages: Gpt3Message[]): Promise<DialogResponse> 
     messages
   }, {
     headers: {
-      Authorization: `Bearer ${token.value}`
+      Authorization: `Bearer ${ token.value }`
     }
   });
 
   return data;
+
 }
