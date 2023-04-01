@@ -1,21 +1,10 @@
 <script lang="ts" setup>
 
-import {useToken} from "~/composables/token";
-import {useUser} from "~/composables/user";
-import {useRouter} from "#app";
-
-const token = useToken();
-const user = useUser();
-const router = useRouter();
+import {logout} from "~/composables/logout";
 
 onMounted(() => {
-  token.value = '';
-  user.value = '';
-  console.log("window.google", window.google);
-  // window.google.accounts.id.disableAutoSelect();
-  location.href = '/login';
+  logout()
 })
-
 </script>
 
 <template>

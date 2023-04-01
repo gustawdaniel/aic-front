@@ -1,8 +1,9 @@
 <script lang="ts" setup>
 import {EyeIcon} from '@heroicons/vue/20/solid'
 import axios from "axios";
-import {useToken} from "#imports";
+import {handleError, useToken} from "#imports";
 import Swal from "sweetalert2";
+import {logout} from "~/composables/logout";
 
 const config = useRuntimeConfig();
 const token = useToken();
@@ -16,17 +17,25 @@ function toggleType() {
 }
 
 onMounted(async () => {
-  const {data} = await axios.get(config.public.apiUrl + '/me?gpt3_api_key=1', {
-    headers: {
-      Authorization: `Bearer ${token.value}`
-    }
-  });
+  try {
+    const {data} = await axios.get(config.public.apiUrl + '/me?gpt3_api_key=1', {
+      headers: {
+        Authorization: `Bearer ${token.value}`
+      }
+    });
 
-  apiKey.value = data.gpt3_api_key;
+
+    console.log("data", data);
+
+    apiKey.value = data.gpt3_api_key;
+  } catch (error) {
+    await handleError('You are not correctly logged in. You will be logged out after confirm.')
+    logout()
+  }
 })
 
 async function setApiKey() {
-  await axios.patch(config.public.apiUrl + '/me?gpt3_api_key=1',{
+  await axios.patch(config.public.apiUrl + '/me?gpt3_api_key=1', {
     gpt3_api_key: apiKey.value
   }, {
     headers: {

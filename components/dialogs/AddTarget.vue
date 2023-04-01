@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import {DialogTitle} from '@headlessui/vue'
 import {InformationCircleIcon} from '@heroicons/vue/24/outline'
-import {getMessage, useModal, useToken} from "#imports";
+import {getMessage, handleError, useModal, useToken} from "#imports";
 import axios from "axios";
 import {useTargets} from "~/composables/targets";
 import {Target} from "~/intefaces/Target";
@@ -42,11 +42,7 @@ async function addTarget() {
     }
 
     if(!payload.url) {
-      return Swal.fire(
-          'Error!',
-          'You have to add your platform url!',
-          'error'
-      )
+      return handleError(Error('You have to add your platform url!'))
     }
 
     if (payload.type === 'wordpress') {
@@ -55,22 +51,14 @@ async function addTarget() {
         password: password.value
       }
       if(!payload.auth.username || !payload.auth.password) {
-        return Swal.fire(
-            'Error!',
-            'You have to add admin username and password to your wordpress Author, Editor or Administrator!',
-            'error'
-        )
+        return handleError(Error('You have to add admin username and password to your wordpress Author, Editor or Administrator!'))
       }
     } else {
       payload.auth = {
         key: apiKey.value
       }
       if(!payload.auth.key) {
-        return Swal.fire(
-          'Error!',
-          'You have to add admin api key for your blog!',
-          'error'
-        )
+        return handleError('You have to add admin api key for your blog!')
       }
     }
 
@@ -83,11 +71,7 @@ async function addTarget() {
       targets.value.push({...data,});
       closeModal();
     } catch (e) {
-      return Swal.fire(
-          'Error!',
-          getMessage(e),
-          'error'
-      )
+      return handleError(e)
     }
   }
 }

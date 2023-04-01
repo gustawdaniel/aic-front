@@ -1,16 +1,27 @@
 <script lang="ts" setup>
+import { throttle } from 'throttle-debounce';
 import Loading from 'vue-loading-overlay';
 import 'vue-loading-overlay/dist/css/index.css';
 import axios from "axios";
-import {useToken} from "~/composables/token";
-import {computed, useModal, useRouter, useSearch, useSelectedGpt3Contexts} from "#imports";
-import {CheckIcon, XMarkIcon, BookOpenIcon, ArrowUturnLeftIcon, CloudArrowUpIcon, TrashIcon} from '@heroicons/vue/24/solid'
-import {Article} from "~/intefaces/Article";
-import {ucFirst} from "~/composables/ucfirst";
-import {getArticleTitle} from "~/composables/getArticleTitle";
+import { useToken } from "~/composables/token";
+import { computed, getMessage, handleError, useModal, useRouter, useSearch, useSelectedGpt3Contexts } from "#imports";
+import {
+  CheckIcon,
+  XMarkIcon,
+  BookOpenIcon,
+  ArrowUturnLeftIcon,
+  CloudArrowUpIcon,
+  TrashIcon
+} from '@heroicons/vue/24/solid'
+import { Article, ArticleState } from "~/intefaces/Article";
+import { ucFirst } from "~/composables/ucfirst";
+import { getArticleTitle } from "~/composables/getArticleTitle";
 import MoveToQueue from "~/components/dialogs/MoveToQueue.vue";
-import {useArticles} from "~/composables/articles";
+import { useArticles } from "~/composables/articles";
 import PublishConfirmation from "~/components/dialogs/PublishConfirmation.vue";
+import dayjs from "dayjs";
+import { ClickableLink } from "~/intefaces/ClickableLink";
+import WordHighlighter from "vue-word-highlighter";
 
 const router = useRouter();
 
@@ -19,21 +30,66 @@ const isLoading = ref<boolean>(false);
 const config = useRuntimeConfig()
 const token = useToken();
 
-async function loadArticles() {
-  isLoading.value = true;
-  const {data} = await axios.get(config.public.apiUrl + '/article', {
-    headers: {
-      Authorization: `Bearer ${token.value}`
-    }
-  });
-  isLoading.value = false;
-  articles.value = data;
+function setPage(link: ClickableLink) {
+  loadArticles(link.url)
 }
 
+type ArticleGroupSingleResult = {
+  _count: {
+    _all: 253
+  },
+  state: ArticleState
+}
+
+const articleStats = ref<Array<ArticleGroupSingleResult>>([])
+
+const currentUrl = ref<string>('/article?state=new');
+const link = ref<string>("");
 const search = useSearch();
+
+async function loadArticleStats() {
+  try {
+    const res = await axios.get(config.public.apiUrl + `/article-count-by-stata?${ new URLSearchParams({search: search.value.text}) }`, {
+      headers: {
+        Authorization: `Bearer ${ token.value }`
+      }
+    });
+    articleStats.value = res.data;
+  } catch (e) {
+    handleError(e)
+  }
+}
+
+async function loadArticles(address: string = '') {
+  isLoading.value = true;
+  try {
+    const url = address.startsWith('https') ? address : (config.public.apiUrl + (address ? address : '/article?state=new'));
+    currentUrl.value = url;
+
+    console.log("url", url);
+
+    const res = await axios.get(url, {
+      headers: {
+        Authorization: `Bearer ${ token.value }`
+      }
+    });
+
+    const {data, headers} = res;
+
+    articles.value = data;
+    link.value = headers.link ?? '';
+  } catch (error) {
+    handleError(error)
+  } finally {
+    isLoading.value = false;
+  }
+
+}
+
 
 onMounted(() => {
   loadArticles();
+  loadArticleStats()
   search.value.enabled = true;
 });
 
@@ -49,17 +105,27 @@ const tabs = computed(() => {
   return states.map((state) => ({
     name: ucFirst(state),
     id: state,
-    count: articles.value.filter(art => art.state === state).length,
+    count: articleStats.value.find(art => art.state === state)?._count._all ?? 0,
     current: openTab.value === state
   }))
 })
 
+watch(search.value, (p, n) => {
+  console.log("p,n", p, n);
+  throttle(1000, (s: { enabled: boolean, text: string }) => {
+    console.log('s:', s);
+    loadArticles(`/article?${ new URLSearchParams({state: openTab.value, search: s.text}) }`)
+    loadArticleStats()
+  })(n);
+})
+
 function setTab(id: string): void {
   openTab.value = id;
+  loadArticles(`/article?${ new URLSearchParams({state: openTab.value, search: search.value.text}) }`)
 }
 
 function readArticle(articleId: string) {
-  router.push(`/article/${articleId}`);
+  router.push(`/article/${ articleId }`);
 }
 
 async function queueArticle(articleId: string) {
@@ -88,9 +154,9 @@ async function rejectArticle(articleId: string) {
     article.state = 'rejected'
   }
 
-  const {data} = await axios.put(config.public.apiUrl + `/article/${articleId}`, {state: 'rejected'}, {
+  const {data} = await axios.put(config.public.apiUrl + `/article/${ articleId }`, {state: 'rejected'}, {
     headers: {
-      Authorization: `Bearer ${token.value}`
+      Authorization: `Bearer ${ token.value }`
     }
   });
 
@@ -103,9 +169,9 @@ async function moveToNewArticle(articleId: string) {
     article.state = 'new'
   }
 
-  const {data} = await axios.put(config.public.apiUrl + `/article/${articleId}`, {state: 'new'}, {
+  const {data} = await axios.put(config.public.apiUrl + `/article/${ articleId }`, {state: 'new'}, {
     headers: {
-      Authorization: `Bearer ${token.value}`
+      Authorization: `Bearer ${ token.value }`
     }
   });
 
@@ -113,9 +179,9 @@ async function moveToNewArticle(articleId: string) {
 }
 
 async function remove(articleId: string) {
-  const {data} = await axios.delete(config.public.apiUrl + `/article/${articleId}`, {
+  const {data} = await axios.delete(config.public.apiUrl + `/article/${ articleId }`, {
     headers: {
-      Authorization: `Bearer ${token.value}`
+      Authorization: `Bearer ${ token.value }`
     }
   });
 
@@ -127,9 +193,15 @@ const visibleArticles = computed<Article[]>(() => {
   return articles.value
       .filter(art => art.state === openTab.value)
       .filter(art => search.value.text ? (
-          art.request.url.toLowerCase().includes(search.value.text.toLowerCase()) || getArticleTitle(art).toLowerCase().includes(search.value.text.toLowerCase())
+          art.request?.url.toLowerCase().includes(search.value.text.toLowerCase()) || getArticleTitle(art).toLowerCase().includes(search.value.text.toLowerCase())
       ) : true)
 })
+
+function getDateFromMongoId(id: string) {
+  const unixTimestamp = parseInt(id.substring(0, 8), 16);
+  return new Date(unixTimestamp * 1000);
+}
+
 
 </script>
 
@@ -187,7 +259,7 @@ const visibleArticles = computed<Article[]>(() => {
                   Title
                 </th>
                 <th scope="col" class="py-3.5 px-3 text-left text-sm font-semibold text-gray-900">Components</th>
-                <!--                <th scope="col" class="py-3.5 px-3 text-left text-sm font-semibold text-gray-900">State</th>-->
+                <th scope="col" class="py-3.5 px-3 text-left text-sm font-semibold text-gray-900">Date</th>
                 <th scope="col" class="relative py-3.5 pl-3 pr-6 sm:pr-0">
                   <span class="sr-only">Edit</span>
                 </th>
@@ -196,12 +268,19 @@ const visibleArticles = computed<Article[]>(() => {
               <tbody class="divide-y divide-gray-200">
               <tr v-for="article in visibleArticles" :key="article.id">
                 <td class="whitespace-nowrap py-4 pl-6 pr-3 text-sm font-medium text-gray-900 sm:pl-0">
-                  <a :href="article.request.url" target="_blank" class="text-ellipsis">{{
-                      getArticleTitle(article).substring(0, 100).trim() + (getArticleTitle(article).length > 100 ? '...' : '')
-                    }}</a>
+                  <component
+                      :is="article.request ? 'a' : 'span'"
+                      :href="article.request?.url" target="_blank"
+                      class="text-ellipsis">
+                    <WordHighlighter :query="search.text">
+                    {{ getArticleTitle(article).substring(0, 100).trim() + (getArticleTitle(article).length > 100 ? '...' : '') }}
+                    </WordHighlighter>
+                  </component>
                 </td>
                 <td class="whitespace-nowrap py-4 px-3 text-sm text-gray-500">{{ article.components.length }}</td>
-                <!--                <td class="whitespace-nowrap py-4 px-3 text-sm text-gray-500">{{ article.state }}</td>-->
+                <td class="whitespace-nowrap py-4 px-3 text-sm text-gray-500">
+                  {{ dayjs(getDateFromMongoId(article.id)).format('YY-MM-DD') }}
+                </td>
 
                 <td class="whitespace-nowrap py-4 pl-3 pr-6 text-right text-sm font-medium sm:pr-0 flex">
                   <BookOpenIcon class="h-6 w-6 text-blue-500 cursor-pointer" @click="readArticle(article.id)"
@@ -218,9 +297,9 @@ const visibleArticles = computed<Article[]>(() => {
                   <ArrowUturnLeftIcon v-if="article.state === 'rejected'" class="h-6 w-6 text-gray-500 cursor-pointer"
                                       @click="moveToNewArticle(article.id)"
                                       title="Return to New Articles."/>
-                  <TrashIcon  class="h-6 w-6 text-red-500 cursor-pointer"
-                                      @click="remove(article.id)"
-                                      title="Remove article from database."/>
+                  <TrashIcon class="h-6 w-6 text-red-500 cursor-pointer"
+                             @click="remove(article.id)"
+                             title="Remove article from database."/>
 
 
                   <!--                      <span @click="request(article.id)" class="text-indigo-600 hover:text-indigo-900 cursor-pointer">Request<span-->
@@ -235,6 +314,8 @@ const visibleArticles = computed<Article[]>(() => {
               </tr>
               </tbody>
             </table>
+
+            <Pagination v-if="link" :link="link" @setPage="setPage"/>
           </div>
 
         </div>

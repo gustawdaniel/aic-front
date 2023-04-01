@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 
-import {deleteGpt3Contexts, getGpt3Contexts, setGpt3Context, useGpt3Contexts} from "#imports";
+import {deleteGpt3Contexts, getGpt3Contexts, setGpt3Context, useGpt3Contexts, useSelectedGpt3Contexts} from "#imports";
 
 const contexts = useGpt3Contexts()
 const selectedContext = useSelectedGpt3Contexts()
@@ -20,7 +20,7 @@ async function save() {
 async function remove(ctx: { id: string, value: string }): Promise<void> {
   await deleteGpt3Contexts(ctx);
 
-  if(selectedContext.value?.id === ctx.id) {
+  if (selectedContext.value?.id === ctx.id) {
     selectedContext.value = undefined;
   }
 }
@@ -48,9 +48,6 @@ function select(ctx: { id: string, value: string }) {
   selectedContext.value = ctx;
 }
 
-import {TrashIcon, PencilIcon, CheckIcon} from '@heroicons/vue/20/solid'
-import {useSelectedGpt3Contexts} from "~/composables/gpt3Contexts";
-
 </script>
 
 <template>
@@ -58,7 +55,7 @@ import {useSelectedGpt3Contexts} from "~/composables/gpt3Contexts";
     <div class="-ml-4 -mt-4 flex flex-wrap items-center justify-between sm:flex-nowrap">
       <div class="ml-4 mt-4 w-full" v-if="contextCreationMode">
         <div>
-          <label for="email" class="sr-only">Email</label>
+          <label class="sr-only">Context</label>
           <input type="text"
                  @keyup.enter="save"
                  @keyup.esc="closeContextCreationDialog"
@@ -72,34 +69,14 @@ import {useSelectedGpt3Contexts} from "~/composables/gpt3Contexts";
         <div class="flex flex-wrap">
           <div :key="context[0]" v-for="context of Array.from(contexts.entries())">
 
-            <div class="flex rounded-md shadow-sm m-1 rounded-md cursor-pointer"
-                 :class="{
-                   'border border-indigo-600': selectedContext?.id === context[1].id,
-                   'border border-gray-200': selectedContext?.id !== context[1].id
-                 }"
-                 :title="context[1].value">
-              <div class="relative flex flex-grow items-stretch focus-within:z-10" @click="select(context[1])">
-                <input
-                    :disabled="!context[1].editable"
-                    type="text"
-                    v-model="context[1].value"
-                    class="block w-full rounded-none rounded-l-md border-0 py-1.5 w-full text-gray-900 placeholder:text-gray-400
-                       sm:text-sm sm:leading-6"
-                />
-              </div>
-              <button v-if="!context[1].editable" @click="context[1].editable = true" type="button"
-                      class="relative -ml-px inline-flex items-center gap-x-1.5 px-3 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-50">
-                <PencilIcon class="-ml-0.5 h-4 w-4 text-gray-400" aria-hidden="true"/>
-              </button>
-              <button v-else-if="context[1].editable" @click="edit(context[1])" type="button"
-                      class="relative -ml-px inline-flex items-center gap-x-1.5 px-3 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-50">
-                <CheckIcon class="-ml-0.5 h-4 w-4 text-gray-400" aria-hidden="true"/>
-              </button>
-              <button @click="remove(context[1])" type="button"
-                      class="relative -ml-px inline-flex items-center gap-x-1.5 rounded-r-md px-3 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-50">
-                <TrashIcon class="-ml-0.5 h-4 w-4 text-gray-400" aria-hidden="true"/>
-              </button>
-            </div>
+            <EditableTag
+              v-model="context[1].value"
+              :active="selectedContext?.id === context[1].id"
+              @select="select(context[1])"
+              @unselect="select(undefined)"
+              @remove="remove(context[1])"
+              @save="edit(context[1])"
+            />
 
           </div>
         </div>

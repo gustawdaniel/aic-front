@@ -1,30 +1,14 @@
 <script setup lang="ts">
 import Loading from 'vue-loading-overlay';
 import 'vue-loading-overlay/dist/css/index.css';
-import axios from "axios";
-import Swal from "sweetalert2";
-import {getMessage} from "~/composables/getMessage";
+import axios, {AxiosResponse} from "axios";
 import {useToken} from "~/composables/token";
-import {ref, useQueues, useUser} from '#imports';
+import {handleError, ref, useQueues, useUser} from '#imports';
 import dayjs from "dayjs";
 import {uid} from "uid";
 import {setQueue} from "~/composables/queues";
-
-interface DialogResponse {
-  finish_reason: string
-  message: {
-    content: string
-    role: 'system' | 'assistant' | 'user'
-  }
-}
-
-interface DialogMessage {
-  text: string,
-  finish_reason: string
-  author: 'me' | 'ai'
-  role: 'system' | 'assistant' | 'user'
-  at: string
-}
+import {DialogMessage, DialogResponse} from "~/intefaces/Gpt3Interface";
+import {askGpt3} from "~/composables/askGpt3";
 
 const isLoading = ref<boolean>(false);
 const config = useRuntimeConfig()
@@ -32,7 +16,7 @@ const token = useToken();
 const dialog = ref<DialogMessage[]>([])
 const question = ref<string>('');
 
-async function askGpt3() {
+async function messageToGpt3() {
   try {
     isLoading.value = true;
     dialog.value.push({
@@ -42,13 +26,10 @@ async function askGpt3() {
       author: 'me',
       at: dayjs().format('HH:mm:ss')
     });
-    const {data} = await axios.post<DialogResponse>(config.public.apiUrl + '/ask', {
-      text: question.value
-    }, {
-      headers: {
-        Authorization: `Bearer ${token.value}`
-      }
-    });
+    const data = await askGpt3([{
+      role: 'user',
+      content: question.value
+    }])
     dialog.value.push({
       text: data.message.content,
       finish_reason: data.finish_reason,
@@ -58,11 +39,7 @@ async function askGpt3() {
     });
     question.value = '';
   } catch (e) {
-    await Swal.fire(
-        'Error!',
-        getMessage(e),
-        'error'
-    );
+    handleError(e);
   } finally {
     isLoading.value = false;
     await scrollToBottom();
@@ -150,11 +127,11 @@ const user = useUser();
             </div>
             <div class="border-t p-2">
 
-              <form @submit.prevent="askGpt3" class="rounded-md">
+              <form @submit.prevent="messageToGpt3" class="rounded-md">
 
                 <div class="mt-2">
               <textarea rows="4" name="comment"
-                        @keyup.exact.enter="askGpt3"
+                        @keyup.exact.enter="messageToGpt3"
                         v-model="question"
                         class="block w-full rounded-md border-0 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:py-1.5 sm:text-sm sm:leading-6"/>
                 </div>

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import {useToken} from "#imports";
+import {handleError, useToken} from "#imports";
 import axios from "axios";
 import Loading from 'vue-loading-overlay';
 import 'vue-loading-overlay/dist/css/index.css';
@@ -23,11 +23,7 @@ async function loadUsers() {
     });
     users.value = data;
   } catch (e) {
-    Swal.fire(
-        'Error!',
-        getMessage(e),
-        'error'
-    );
+    handleError(e)
   } finally {
     isLoading.value = false;
   }
@@ -62,11 +58,7 @@ async function impersonate(userId: string) {
 
     location.reload();
   } catch (e) {
-    Swal.fire(
-        'Error!',
-        getMessage(e),
-        'error'
-    );
+    handleError(e)
   } finally {
     isLoading.value = false;
 

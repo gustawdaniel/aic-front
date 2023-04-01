@@ -1,14 +1,15 @@
 <script lang="ts" setup>
 import axios from "axios";
-import {useRouter} from "#imports";
+import {handleError, useRouter} from "#imports";
 import {useToken} from '~/composables/token'
 import {useUser} from '~/composables/user'
+import {GoogleLoginCallbackPayload} from "~/intefaces/GoogleLoginCallbackPayload";
 
 const config = useRuntimeConfig()
 const router = useRouter();
 
-if(process.client) {
-  window.googleLoginCallback = (userData) => {
+if (process.client) {
+  window.googleLoginCallback = (userData: GoogleLoginCallbackPayload) => {
     console.log("ud", userData);
     axios.post(config.public.apiUrl + '/google-verify', {
       credential: userData.credential
@@ -21,10 +22,9 @@ if(process.client) {
       console.log("token", token.value);
       user.value = res.data.user;
       router.push('/');
-    }).catch(console.error)
+    }).catch((error) => handleError(error))
   }
 }
-
 
 
 // console.log("GOOGLE_CLIENT_ID", process.env.GOOGLE_CLIENT_ID);

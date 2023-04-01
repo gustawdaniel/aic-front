@@ -7,6 +7,7 @@ import {useTargets} from "~/composables/targets";
 import axios from "axios";
 import Swal from "sweetalert2";
 import dayjs from "dayjs";
+import {handleError} from "#imports";
 
 const props = defineProps<{ articles: Article[] }>()
 
@@ -49,11 +50,7 @@ async function confirmPublication() {
         });
       } catch (error) {
         errors++;
-        await Swal.fire(
-            'Error!',
-            getMessage(error),
-            'error'
-        );
+        await handleError(error)
       }
     }
   }
