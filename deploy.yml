@@ -27,4 +27,4 @@
         pull: yes
         project_src: "{{ path }}"
     - name: Remove Old Images
-      cmd: docker system prune -af
+      shell: docker system prune -af
