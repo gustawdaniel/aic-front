@@ -44,7 +44,7 @@ async function setApiKey() {
       }
     });
 
-    await Swal.fire(
+    return Swal.fire(
         'You saved api key!',
         `Now you can use AI to process your content!`,
         'success'

@@ -61,13 +61,13 @@ async function confirmPublication() {
   }
   isLoading.value = false;
   if (errors) {
-    await Swal.fire(
+    return Swal.fire(
         'Operation finished!',
         `It took ${dayjs().diff(start)}ms but there was ${errors} errors!`,
         'info'
     );
   } else {
-    await Swal.fire(
+    return  Swal.fire(
         'Content published!',
         `It took only ${dayjs().diff(start)}ms!`,
         'success'

@@ -49,7 +49,7 @@ function setPage(link: ClickableLink) {
   loadArticles(link.url)
 }
 
-type SortType = 'id_desc' | 'id_asc' | 'title_asc';
+type SortType = 'id_desc' | 'id_asc' | 'title_asc' | 'components_asc' | 'components_desc';
 
 const sortValue = ref<SortType>('id_desc');
 
@@ -57,6 +57,8 @@ const sortOptions = computed<Array<{ name: string, value: SortType, current: boo
   const options: Array<{ name: string, value: SortType }> = [
     {name: 'Newest', value: 'id_desc'},
     {name: 'Oldest', value: 'id_asc'},
+    {name: 'Shortest', value: 'components_asc'},
+    {name: 'Longest', value: 'components_desc'},
     {name: 'Alphabetical', value: 'title_asc'},
   ];
 

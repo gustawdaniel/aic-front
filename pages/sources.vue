@@ -1,12 +1,12 @@
 <script lang="ts" setup>
 import axios from "axios";
-import {useToken} from '~/composables/token';
+import { useToken } from '~/composables/token';
 import Swal from 'sweetalert2'
 import Loading from 'vue-loading-overlay';
 import 'vue-loading-overlay/dist/css/index.css';
 import { handleError, useModal } from "#imports";
 import AddSource from "~/components/dialogs/AddSource.vue";
-import {useSources} from "~/composables/sources";
+import { useSources } from "~/composables/sources";
 
 const config = useRuntimeConfig()
 const token = useToken();
@@ -39,27 +39,25 @@ const modal = useModal();
 
 function addSource() {
   modal.value.component = AddSource
-
-
-  // return Swal.fire(
-  //     'Not implemented!',
-  //     `This button will be available soon`,
-  //     'warning'
-  // );
 }
 
 async function askForDelete(sourceId: string) {
   const yes = confirm(`Are you sure? This operation is not possible to revert and will remove all articles from given source.`);
-  if(yes) {
-    isLoading.value = true;
-    await axios.delete(config.public.apiUrl + '/source/' + sourceId, {
-      headers: {
-        Authorization: `Bearer ${token.value}`
-      }
-    })
-    isLoading.value = false;
+  if (yes) {
+    try {
+      isLoading.value = true;
+      await axios.delete(config.public.apiUrl + '/source/' + sourceId, {
+        headers: {
+          Authorization: `Bearer ${ token.value }`
+        }
+      })
 
-    sources.value = sources.value.filter(source => source.id !== sourceId);
+      sources.value = sources.value.filter(source => source.id !== sourceId);
+    } catch (e) {
+      handleError(e)
+    } finally {
+      isLoading.value = false;
+    }
   }
 }
 
@@ -75,9 +73,11 @@ async function request(sourceId: string) {
       }
     });
 
-    await Swal.fire(
+    await loadSources();
+
+    return Swal.fire(
         'Content Collected!',
-        `It took only ${data.time}ms!`,
+        `It took only ${ data.time }ms!`,
         'success'
     )
   } catch (e) {
@@ -85,8 +85,6 @@ async function request(sourceId: string) {
   } finally {
     isLoading.value = false;
   }
-
-  return loadSources();
 }
 </script>
 
@@ -162,11 +160,11 @@ async function request(sourceId: string) {
                       <button @click="askForDelete(source.id)" class="text-red-600 hover:text-red-900">Delete<span
                           class="sr-only">, {{ source.url }}</span></button>
                     </td>
-<!--                    TODO -->
-<!--                    <td class="relative whitespace-nowrap py-4 pl-3 pr-6 text-right text-sm font-medium sm:pr-0">-->
-<!--                      <a href="#" class="text-indigo-600 hover:text-indigo-900">Edit<span-->
-<!--                          class="sr-only">, {{ source.url }}</span></a>-->
-<!--                    </td>-->
+                    <!--                    TODO -->
+                    <!--                    <td class="relative whitespace-nowrap py-4 pl-3 pr-6 text-right text-sm font-medium sm:pr-0">-->
+                    <!--                      <a href="#" class="text-indigo-600 hover:text-indigo-900">Edit<span-->
+                    <!--                          class="sr-only">, {{ source.url }}</span></a>-->
+                    <!--                    </td>-->
                   </tr>
                   </tbody>
                 </table>

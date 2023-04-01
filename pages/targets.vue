@@ -41,13 +41,6 @@ const modal = useModal();
 
 function addTarget() {
   modal.value.component = AddTarget
-
-
-  // return Swal.fire(
-  //     'Not implemented!',
-  //     `This button will be available soon`,
-  //     'warning'
-  // );
 }
 
 async function askForDelete(targetId: string) {
