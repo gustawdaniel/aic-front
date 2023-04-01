@@ -1,4 +1,4 @@
-import {Article} from "~/intefaces/Article";
+import { Article, SingleArticle } from "~/intefaces/Article";
 import axios from "axios";
 import { useToken } from "~/composables/token";
 import {handleError} from '#imports'
@@ -7,7 +7,7 @@ export const useArticles = () => {
 }
 
 export const useSelectedArticle = () => {
-  return useState<Article|undefined>('selected-article', () => undefined)
+  return useState<SingleArticle|undefined>('selected-article', () => undefined)
 }
 
 export async function syncArticle() {

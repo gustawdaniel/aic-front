@@ -105,7 +105,7 @@ async function loadArticles(address: string = '') {
 
     console.log("url", url);
 
-    const res = await axios.get(url, {
+    const res = await axios.get<Article[]>(url, {
       headers: {
         Authorization: `Bearer ${ token.value }`
       }
@@ -357,17 +357,17 @@ function getDateFromMongoId(id: string) {
               <tr v-for="article in visibleArticles" :key="article.id">
                 <td class="whitespace-nowrap py-4 pl-6 pr-3 text-sm font-medium text-gray-900 sm:pl-0">
                   <component
-                      :is="article.request ? 'a' : 'span'"
-                      :href="article.request?.url" target="_blank"
+                      :is="article.source_url ? 'a' : 'span'"
+                      :href="article.source_url" target="_blank"
                       class="text-ellipsis">
                     <WordHighlighter :query="search.text">
                       {{
-                        getArticleTitle(article).substring(0, 100).trim() + (getArticleTitle(article).length > 100 ? '...' : '')
+                        article.title.substring(0, 100).trim() + (article.title.length > 100 ? '...' : '')
                       }}
                     </WordHighlighter>
                   </component>
                 </td>
-                <td class="whitespace-nowrap py-4 px-3 text-sm text-gray-500">{{ article.components.length }}</td>
+                <td class="whitespace-nowrap py-4 px-3 text-sm text-gray-500">{{ article.components_length }}</td>
                 <td class="whitespace-nowrap py-4 px-3 text-sm text-gray-500">
                   {{ dayjs(getDateFromMongoId(article.id)).format('YY-MM-DD') }}
                 </td>
