@@ -89,7 +89,7 @@ const selectedTargets = ref<Array<string>>([]);
           <li v-for="article in props.articles" class="flex items-center justify-between py-3 pl-3 pr-4 text-sm">
             <div class="flex w-0 flex-1 items-center">
               <NewspaperIcon class="h-5 w-5 flex-shrink-0 text-gray-400" aria-hidden="true"/>
-              <span class="ml-2 w-0 flex-1 truncate">{{ getArticleTitle(article) }}</span>
+              <span class="ml-2 w-0 flex-1 truncate">{{ article.title }}</span>
             </div>
           </li>
         </ul>

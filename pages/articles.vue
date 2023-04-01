@@ -247,7 +247,7 @@ const visibleArticles = computed<Article[]>(() => {
   return articles.value
       .filter(art => art.state === openTab.value)
       .filter(art => search.value.text ? (
-          art.request?.url.toLowerCase().includes(search.value.text.toLowerCase()) || getArticleTitle(art).toLowerCase().includes(search.value.text.toLowerCase())
+          [art.source_url, art.title].some(field => field.toLowerCase().includes(search.value.text.toLowerCase()))
       ) : true)
 })
 
