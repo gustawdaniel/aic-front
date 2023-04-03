@@ -1,9 +1,10 @@
 import axios from "axios";
-import {useToken} from "~/composables/token";
-import {handleError} from "~/composables/handleError";
-import {IdValue} from "~/intefaces/IdValue";
+import { useToken } from "~/composables/token";
+import { handleError } from "~/composables/handleError";
+import { IdValue } from "~/intefaces/IdValue";
 
-interface Gpt3Prompt extends IdValue {}
+interface Gpt3Prompt extends IdValue {
+}
 
 export const useSelectedGpt3Prompts = () => {
   return useState<Gpt3Prompt | undefined>('selected-gpt3-prompt', () => undefined)
@@ -21,7 +22,7 @@ export async function setGpt3Prompt(prompt: Gpt3Prompt): Promise<Gpt3Prompt | un
   try {
     const {data} = await axios.put<Gpt3Prompt>(config.public.apiUrl + '/prompt', prompt, {
       headers: {
-        Authorization: `Bearer ${token.value}`
+        Authorization: `Bearer ${ token.value }`
       }
     });
 
@@ -35,27 +36,30 @@ export async function setGpt3Prompt(prompt: Gpt3Prompt): Promise<Gpt3Prompt | un
 }
 
 export async function deleteGpt3Prompts(prompt: Gpt3Prompt): Promise<void> {
-  if(!prompt.id) return ;
+  if (!prompt.id) return;
 
   const config = useRuntimeConfig()
   const token = useToken();
+  try {
+    const {data} = await axios.delete<Gpt3Prompt>(config.public.apiUrl + '/prompt/' + prompt.id, {
+      headers: {
+        Authorization: `Bearer ${ token.value }`
+      }
+    });
 
-  const {data} = await axios.delete<Gpt3Prompt>(config.public.apiUrl + '/prompt/' + prompt.id,{
-    headers: {
-      Authorization: `Bearer ${token.value}`
-    }
-  });
-
-  const state = useGpt3Prompts();
-  state.value.delete(data.id);
+    const state = useGpt3Prompts();
+    state.value.delete(data.id);
+  } catch (error) {
+    handleError(error)
+  }
 
   return undefined
 }
 
-export async function getGpt3Prompts(): Promise<Gpt3Prompt[]> {
+export async function getGpt3Prompts(): Promise<Gpt3Prompt[] | undefined> {
   const config = useRuntimeConfig()
   const token = useToken();
-
+  try {
     const {data} = await axios.get<Gpt3Prompt[]>(config.public.apiUrl + '/prompt', {
       headers: {
         Authorization: `Bearer ${ token.value }`
@@ -66,8 +70,9 @@ export async function getGpt3Prompts(): Promise<Gpt3Prompt[]> {
     data.forEach((ctx) => {
       state.value.set(ctx.id, ctx);
     });
-
     return data
-
+  } catch (error) {
+    handleError(error)
+  }
 }
 

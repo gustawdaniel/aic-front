@@ -1,7 +1,9 @@
 export interface ArticleComponent {
+  id: string
   xpath: string[],
   text: string,
   finish_reason: string
+  ai_requests: string[]
 }
 
 export type ArticleState = 'new' | 'queued' | 'rejected' | 'verification' | 'published';

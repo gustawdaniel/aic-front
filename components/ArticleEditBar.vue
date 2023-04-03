@@ -2,27 +2,29 @@
 
 import {
   useSelectedGpt3Prompts,
-  useSelectedArticleComponent,
+  useSelectedArticleComponents,
   useSelectedGpt3Contexts,
   askGpt3,
-  computed, selectArticleComponent, syncArticle, handleError
+  computed, syncArticle, handleError
 } from "#imports";
 import { Gpt3Message } from "~/intefaces/Gpt3Interface";
 import Swal from "sweetalert2";
 import { useSelectedArticle } from "~/composables/articles";
+import { ArticleComponent } from "~/intefaces/Article";
+import { useArticleComponentsAnswers } from "~/composables/articleComponent";
+import { uid } from "uid";
 
 const prompt = useSelectedGpt3Prompts();
 const context = useSelectedGpt3Contexts();
-const selectedArticleComponent = useSelectedArticleComponent();
-
-const inputText = ref<string>('');
-const answerText = ref<string>('');
+const queuedArticleComponents = ref<Map<string, ArticleComponent>>(new Map());
+const selectedArticleComponents = useSelectedArticleComponents();
+const answers = useArticleComponentsAnswers()
 
 const actionsDisabled = computed<boolean>(() => {
-  return !selectedArticleComponent.value
+  return !Boolean(selectedArticleComponents.value.size)
 })
 
-async function askGpt(prompt: string, text: string) {
+async function askGpt(componentId: string, prompt: string, text: string) {
   const messages: Gpt3Message[] = [];
   if (context.value && context.value.value) {
     messages.push({
@@ -35,10 +37,14 @@ async function askGpt(prompt: string, text: string) {
     content: prompt + '\n\n' + text
   })
 
-  answerText.value = 'Loading...'
+  answers.value.set(componentId, {id: '', finish_reason: '', message: {role: 'system', content: 'Loading...'}});
 
   const interval = setInterval(() => {
-    answerText.value = answerText.value + '.'
+    answers.value.set(componentId, {
+      id: '',
+      finish_reason: '',
+      message: {role: 'system', content: answers.value.get(componentId)?.message.content + '.'}
+    })
   }, 100)
 
   try {
@@ -46,72 +52,100 @@ async function askGpt(prompt: string, text: string) {
 
     clearInterval(interval);
 
-    answerText.value = data.message.content
+    answers.value.set(componentId, data)
   } catch (e) {
     handleError(e)
   }
 }
 
-watch(selectedArticleComponent, (n) => {
-  if (n) {
-    inputText.value = n.component.text
-    if (inputText.value && prompt.value && prompt.value.value) {
-      askGpt(prompt.value.value, inputText.value)
+watch(selectedArticleComponents, (n) => {
+  const added = [...n.entries()].filter(([k, v]) => !queuedArticleComponents.value.has(k));
+  const removed = [...queuedArticleComponents.value.entries()].filter(([k, v]) => !n.has(k));
+
+  for (const [k, v] of added) {
+    queuedArticleComponents.value.set(k, v);
+    console.log("added", k, v, v.text, prompt.value, prompt.value?.value);
+    if (v.text && prompt.value && prompt.value.value) {
+      askGpt(k, prompt.value.value, v.text)
     }
-  } else {
-    inputText.value = '';
   }
+
+  for (const [k, v] of removed) {
+    queuedArticleComponents.value.delete(k);
+    answers.value.delete(k)
+  }
+}, {
+  deep: true
 })
 
 watch(prompt, (n) => {
   if (n) {
     console.log(n.value);
-    if (n.value && inputText.value) {
-      askGpt(n.value, inputText.value);
+    for (const [k, v] of selectedArticleComponents.value.entries()) {
+      if (v.text) {
+        askGpt(k, n.value, v.text)
+      }
     }
   }
 })
 
 watch(context, () => {
-  if (inputText.value && prompt.value && prompt.value.value) {
-    askGpt(prompt.value.value, inputText.value)
+  for (const [k, v] of selectedArticleComponents.value.entries()) {
+    if (v.text && prompt.value && prompt.value.value) {
+      askGpt(k, prompt.value.value, v.text)
+    }
   }
 })
 
 const article = useSelectedArticle();
 
 function prepend() {
-  if (!article.value || !selectedArticleComponent.value) {
+  if (!article.value || !selectedArticleComponents.value.size) {
     return Swal.fire('Select component!', `You have to click on article and select component!`, 'info')
   }
 
-  article.value.components.splice(selectedArticleComponent.value.index, 0, {
-    text: answerText.value,
-    finish_reason: 'stop',
-    xpath: ['p']
-  })
+  for (const [k, v] of selectedArticleComponents.value.entries()) {
+    const index = article.value.components.findIndex((x) => x.id === k);
+    article.value.components.splice(index, 0, {
+      id: uid(),
+      text: answers.value.get(k)?.message.content ?? '',
+      finish_reason: 'stop',
+      xpath: ['p'],
+      ai_requests: [...v.ai_requests, answers.value.get(k)?.id].filter((x: string | undefined): x is string => Boolean(x))
+    })
+  }
 }
 
 function replace() {
-  if (!article.value || !selectedArticleComponent.value) {
+  if (!article.value || !selectedArticleComponents.value.size) {
     return Swal.fire('Select component!', `You have to click on article and select component!`, 'info')
   }
-  article.value.components[selectedArticleComponent.value.index] = {
-    text: answerText.value,
-    finish_reason: 'stop',
-    xpath: ['p']
+  for (const [k, v] of selectedArticleComponents.value.entries()) {
+    const index = article.value.components.findIndex((x) => x.id === k);
+    article.value.components[index] = {
+      id: uid(),
+      text: answers.value.get(k)?.message.content ?? '',
+      finish_reason: 'stop',
+      xpath: ['p'],
+      ai_requests: [...v.ai_requests, answers.value.get(k)?.id].filter((x: string | undefined): x is string => Boolean(x))
+    }
   }
 }
 
 function append() {
-  if (!article.value || !selectedArticleComponent.value) {
+  if (!article.value || !selectedArticleComponents.value.size) {
     return Swal.fire('Select component!', `You have to click on article and select component!`, 'info')
   }
-  article.value.components.splice(selectedArticleComponent.value.index + 1, 0, {
-    text: answerText.value,
-    finish_reason: 'stop',
-    xpath: ['p']
-  })
+  for (const [k, v] of selectedArticleComponents.value.entries()) {
+    const index = article.value.components.findIndex((x) => x.id === k);
+    article.value.components.splice(index + 1, 0, {
+      id: uid(),
+      text: answers.value.get(k)?.message.content ?? '',
+      finish_reason: 'stop',
+      xpath: ['p'],
+      ai_requests: [...v.ai_requests, answers.value.get(k)?.id].filter((x: string | undefined): x is string => Boolean(x))
+    })
+  }
 }
 
 async function save() {
@@ -122,16 +156,24 @@ async function save() {
     return Swal.fire('Error occurred!', getMessage(e), 'error')
   }
 }
+
+function selectAllComponents() {
+  for (const component of article.value?.components ?? []) {
+    selectedArticleComponents.value.set(component.id, component)
+  }
+}
+
+function deselectAllComponents() {
+  selectedArticleComponents.value.clear()
+}
 </script>
 
 <template>
   <div>
     <Gpt3PromptManager/>
 
-    <div class="mt-2">
-      <textarea class="w-full" v-model="inputText"/>
-      <textarea class="w-full" v-model="answerText"/>
-    </div>
+    <button class="btn w-full my-1" @click="selectAllComponents">Select All</button>
+    <button class="btn w-full my-1" @click="deselectAllComponents">Deselect All</button>
 
     <div class="grid grid-cols-3 gap-2">
       <button :disabled="actionsDisabled" class="btn" @click="prepend">Prepend</button>
