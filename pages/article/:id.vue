@@ -1,15 +1,12 @@
 <script lang="ts" setup>
 
 import {useRoute, useToken} from "#imports";
-import axios from "axios";
-import {Article} from "~/intefaces/Article";
 
 const route = useRoute()
 const article = useSelectedArticle();
 const isLoading = ref<boolean>(false);
 const config = useRuntimeConfig()
 const token = useToken();
-import {getArticleTitle} from "~/composables/getArticleTitle";
 import Loading from 'vue-loading-overlay';
 import 'vue-loading-overlay/dist/css/index.css';
 import ComponentsArticleView from "~/components/article/ComponentsArticleView.vue";
@@ -17,16 +14,11 @@ import RenderedArticleView from "~/components/article/RenderedArticleView.vue";
 import DeveloperArticleView from "~/components/article/DeveloperArticleView.vue";
 import IframeArticleView from "~/components/article/IframeArticleView.vue";
 import EditArticleView from "~/components/article/EditArticleView.vue";
-import { useSelectedArticle } from "~/composables/articles";
+import { getSingleArticle, useSelectedArticle } from "~/composables/articles";
 
 async function getArticle() {
   isLoading.value = true;
-  const {data} = await axios.get<Article>(config.public.apiUrl + `/article/${route.params.id}`, {
-    headers: {
-      Authorization: `Bearer ${token.value}`
-    }
-  });
-  article.value = data;
+  await getSingleArticle(String(route.params.id));
   isLoading.value = false;
 }
 

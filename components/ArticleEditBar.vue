@@ -19,6 +19,7 @@ const context = useSelectedGpt3Contexts();
 const queuedArticleComponents = ref<Map<string, ArticleComponent>>(new Map());
 const selectedArticleComponents = useSelectedArticleComponents();
 const answers = useArticleComponentsAnswers()
+const article = useSelectedArticle();
 
 const actionsDisabled = computed<boolean>(() => {
   return !Boolean(selectedArticleComponents.value.size)
@@ -97,8 +98,6 @@ watch(context, () => {
   }
 })
 
-const article = useSelectedArticle();
-
 function prepend() {
   if (!article.value || !selectedArticleComponents.value.size) {
     return Swal.fire('Select component!', `You have to click on article and select component!`, 'info')
@@ -166,6 +165,53 @@ function selectAllComponents() {
 function deselectAllComponents() {
   selectedArticleComponents.value.clear()
 }
+
+function mergeSelectedComponents() {
+  const components = [...selectedArticleComponents.value.values()];
+  const text = components.map((x) => x.text).join('\n\n');
+  const ai_requests = components.map((x) => x.ai_requests).flat();
+  const id = components[0].id;
+  const index = article.value?.components.findIndex((x) => x.id === id) ?? 0;
+
+  const mergedComponent: ArticleComponent = {
+    id,
+    text,
+    finish_reason: 'stop',
+    xpath: ['p'],
+    ai_requests
+  };
+
+  article.value?.components.splice(index, components.length, mergedComponent);
+
+  selectedArticleComponents.value.clear();
+  answers.value.clear();
+  selectedArticleComponents.value.set(id, mergedComponent)
+}
+
+function splitSelectedComponents() {
+  const components = [...selectedArticleComponents.value.entries()];
+  selectedArticleComponents.value.clear();
+  answers.value.clear();
+
+  for (const [v, c] of components) {
+    const textParts = c.text.split(`\n\n`);
+
+    const articleComponentIndex: number = article.value?.components.findIndex((x) => x.id === v) ?? 0;
+    const splitComponent = textParts.map((textPart, index) => {
+      const id = index === 0 ? v : uid();
+      return {
+        id,
+        text: textPart,
+        finish_reason: 'stop',
+        xpath: ['p'],
+        ai_requests: c.ai_requests
+      }
+    })
+
+    article.value?.components.splice(articleComponentIndex, 1, ...splitComponent);
+    splitComponent.forEach(component => selectedArticleComponents.value.set(component.id, component));
+  }
+}
 </script>
 
 <template>
@@ -174,6 +220,9 @@ function deselectAllComponents() {
 
     <button class="btn w-full my-1" @click="selectAllComponents">Select All</button>
     <button class="btn w-full my-1" @click="deselectAllComponents">Deselect All</button>
+
+    <button class="btn w-full my-1" @click="mergeSelectedComponents">Join to single components</button>
+    <button class="btn w-full my-1" @click="splitSelectedComponents">Spread to many components</button>
 
     <div class="grid grid-cols-3 gap-2">
       <button :disabled="actionsDisabled" class="btn" @click="prepend">Prepend</button>
