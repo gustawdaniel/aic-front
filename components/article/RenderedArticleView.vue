@@ -1,10 +1,14 @@
 <script lang="ts" setup>
-import {Article} from "~/intefaces/Article";
+import { Article, SingleArticle } from "~/intefaces/Article";
 import {computed} from "#imports";
 
-const props = defineProps<{article: Article}>();
+const props = defineProps<{article: Pick<SingleArticle, 'components'>}>();
 
-const article = computed<Article>(() => props.article);
+const article = computed<Pick<SingleArticle, 'components'>>(() => props.article);
+
+onMounted(() => {
+  console.log("article.value");
+});
 
 const classes = {
   'h1': 'text-3xl font-bold leading-tight',

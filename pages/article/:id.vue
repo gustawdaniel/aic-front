@@ -32,9 +32,10 @@ const views:Array<{id: SingleArticleView, title: string}> = [
   {id: 'rendered', title: 'Rendered View'},
   {id: 'developer', title: 'Developer View'},
   {id: 'iframe', title: 'Iframe View'},
+  {id: 'history', title: 'History View'},
 ]
 
-type SingleArticleView = 'components' | 'rendered' | 'developer' | 'iframe' | 'default';
+type SingleArticleView = 'components' | 'rendered' | 'developer' | 'iframe' | 'default' | 'history';
 
 const selectedView = ref<SingleArticleView>('default');
 
@@ -84,6 +85,7 @@ function selectView(view: SingleArticleView) {
         <RenderedArticleView v-else-if="selectedView === 'rendered'" :article="article"/>
         <DeveloperArticleView v-else-if="selectedView === 'developer'" :article="article"/>
         <IframeArticleView v-else-if="selectedView === 'iframe'" :article="article"/>
+        <HistoryArticleView v-else-if="selectedView === 'history'" :article="article"/>
         <div v-else-if="selectedView === 'default'" class="grid grid-cols-5 gap-4">
           <ArticleEditBar class="h-screen sticky top-0"/>
           <EditArticleView :article="article" class="col-span-2"/>

@@ -1,11 +1,19 @@
 <script lang="ts" setup>
 import { Article } from "~/intefaces/Article";
-import { computed, selectArticleComponent, useArticleComponentsAnswers, useSelectedArticleComponents } from "#imports";
+import {
+  computed,
+  selectArticleComponent,
+  useAiRequestCache,
+  useArticleComponentsAnswers,
+  useSelectedArticleComponents
+} from "#imports";
 
 const props = defineProps<{ article: Article }>();
 const selectedComponents = useSelectedArticleComponents();
 const answers = useArticleComponentsAnswers();
 const article = computed<Article>(() => props.article);
+
+const aiRequestCache = useAiRequestCache();
 </script>
 
 <template>
@@ -13,7 +21,8 @@ const article = computed<Article>(() => props.article);
     <div class="bg-white">
       <div class=" divide-y">
 <!--        <pre>{{selectedComponents}}</pre>-->
-<!--        <pre>{{article.components}}</pre>-->
+<!--        <pre>{{ article.components }}</pre>-->
+<!--        <pre>{{aiRequestCache}}</pre>-->
         <dl class="  divide-y">
           <div v-for="(component, number) in article.components" :key="number"
                class="py-3 lg:grid lg:grid-cols-12 lg:gap-8"

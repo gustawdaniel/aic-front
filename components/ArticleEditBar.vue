@@ -5,7 +5,8 @@ import {
   useSelectedArticleComponents,
   useSelectedGpt3Contexts,
   askGpt3,
-  computed, syncArticle, handleError
+  cleanupMessages,
+  computed, syncArticle, handleError, getHistoricMessagesForComponentUsingCache
 } from "#imports";
 import { Gpt3Message } from "~/intefaces/Gpt3Interface";
 import Swal from "sweetalert2";
@@ -25,8 +26,14 @@ const actionsDisabled = computed<boolean>(() => {
   return !Boolean(selectedArticleComponents.value.size)
 })
 
+
 async function askGpt(componentId: string, prompt: string, text: string) {
-  const messages: Gpt3Message[] = [];
+  const enabled = useHistoricalMessagesEnabled();
+  const messages: Gpt3Message[] = enabled.value ? getHistoricMessagesForComponentUsingCache(componentId) : [];
+
+  console.log("enabled", enabled);
+  console.log("messages", messages);
+
   if (context.value && context.value.value) {
     messages.push({
       role: 'system',
@@ -49,7 +56,9 @@ async function askGpt(componentId: string, prompt: string, text: string) {
   }, 100)
 
   try {
-    const data = await askGpt3(messages)
+    const selectedMessages = enabled.value ? cleanupMessages(messages) : messages;
+
+    const data = await askGpt3(selectedMessages)
 
     clearInterval(interval);
 
@@ -109,7 +118,7 @@ function prepend() {
       id: uid(),
       text: answers.value.get(k)?.message.content ?? '',
       finish_reason: 'stop',
-      xpath: ['p'],
+      xpath: v.xpath,
       ai_requests: [...v.ai_requests, answers.value.get(k)?.id].filter((x: string | undefined): x is string => Boolean(x))
     })
   }
@@ -121,13 +130,21 @@ function replace() {
   }
   for (const [k, v] of selectedArticleComponents.value.entries()) {
     const index = article.value.components.findIndex((x) => x.id === k);
-    article.value.components[index] = {
-      id: uid(),
+
+    console.log("answers.value.get(k)", k, answers.value.get(k));
+
+    const newValue: ArticleComponent = {
+      id: k,
       text: answers.value.get(k)?.message.content ?? '',
       finish_reason: 'stop',
-      xpath: ['p'],
+      xpath: v.xpath,
       ai_requests: [...v.ai_requests, answers.value.get(k)?.id].filter((x: string | undefined): x is string => Boolean(x))
-    }
+    };
+
+    article.value.components[index] = newValue;
+    selectedArticleComponents.value.set(k, newValue);
+
+    console.log("after", article.value.components[index]);
   }
 }
 
@@ -141,7 +158,7 @@ function append() {
       id: uid(),
       text: answers.value.get(k)?.message.content ?? '',
       finish_reason: 'stop',
-      xpath: ['p'],
+      xpath: v.xpath,
       ai_requests: [...v.ai_requests, answers.value.get(k)?.id].filter((x: string | undefined): x is string => Boolean(x))
     })
   }
@@ -156,15 +173,6 @@ async function save() {
   }
 }
 
-function selectAllComponents() {
-  for (const component of article.value?.components ?? []) {
-    selectedArticleComponents.value.set(component.id, component)
-  }
-}
-
-function deselectAllComponents() {
-  selectedArticleComponents.value.clear()
-}
 
 function mergeSelectedComponents() {
   const components = [...selectedArticleComponents.value.values()];
@@ -212,13 +220,56 @@ function splitSelectedComponents() {
     splitComponent.forEach(component => selectedArticleComponents.value.set(component.id, component));
   }
 }
+
+
+type SelectableElementType = 'all' | 'p' | 'h' | 'pre';
+const selectableElementTypes: SelectableElementType[] = ['all', 'p', 'h', 'pre'];
+
+const selectedElementType = ref<SelectableElementType>('all');
+
+function setType(type: SelectableElementType) {
+  selectedElementType.value = type;
+}
+
+function isComponentType(component: ArticleComponent, type: SelectableElementType): boolean {
+  switch (type) {
+    case 'all':
+      return true;
+    case 'p':
+      return component.xpath[0] === 'p';
+    case 'h':
+      return component.xpath[0].startsWith('h');
+    case 'pre':
+      return component.xpath[0] === 'pre';
+  }
+}
+
+function selectComponentsByType() {
+  for (const component of article.value?.components.filter((component): boolean => isComponentType(component, selectedElementType.value)) ?? []) {
+    selectedArticleComponents.value.set(component.id, component)
+  }
+}
+
+function deselectAllComponents() {
+  selectedArticleComponents.value.clear()
+}
+
+
 </script>
 
 <template>
   <div>
     <Gpt3PromptManager/>
 
-    <button class="btn w-full my-1" @click="selectAllComponents">Select All</button>
+    <HistoricalMessagesSwitch class="py-2 px-1"/>
+
+    <button class="btn w-full my-1" @click="selectComponentsByType">Select All</button>
+    <div class="grid grid-cols-4 gap-2">
+      <button v-for="type of selectableElementTypes" class="btn"
+              :class="{'bg-indigo-400': selectedElementType === type}" @click="setType(type)">{{type}}
+      </button>
+    </div>
+
     <button class="btn w-full my-1" @click="deselectAllComponents">Deselect All</button>
 
     <button class="btn w-full my-1" @click="mergeSelectedComponents">Join to single components</button>
@@ -230,8 +281,10 @@ function splitSelectedComponents() {
       <button :disabled="actionsDisabled" class="btn" @click="append">Append</button>
     </div>
 
-    <button :disabled="actionsDisabled" class="btn w-full mt-1" @click="save">Save Article</button>
+    <button class="btn w-full mt-1" @click="save">Save Article</button>
   </div>
 </template>
 
 <style scoped></style>
+
+
