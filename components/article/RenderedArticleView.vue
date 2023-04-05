@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import { Article, SingleArticle } from "~/intefaces/Article";
-import {computed} from "#imports";
+import { computed } from "#imports";
 
-const props = defineProps<{article: Pick<SingleArticle, 'components'>}>();
+const props = defineProps<{ article: Pick<SingleArticle, 'components'> }>();
 
 const article = computed<Pick<SingleArticle, 'components'>>(() => props.article);
 
@@ -24,11 +24,14 @@ const classes = {
 </script>
 
 <template>
-  <div class="mx-auto max-w-7xl sm:px-6 lg:px-8 mt-4 border-gray-200 border-dashed border">
-    <template v-for="(component, number) in article.components" :key="number">
-      <component :is="component.xpath[0]" :class="classes[component.xpath[0]]" class="py-1">{{component.text}}</component>
-    </template>
-  </div>
+    <div class="mx-auto max-w-7xl sm:px-6 lg:px-8 mt-4 border-gray-200 border-dashed border">
+        <template v-for="(component, number) in article.components" :key="number">
+            <img :src="component.text" v-if="component.xpath[0] === 'img'" :alt="component.text" class="py-1">
+            <component v-else :is="component.xpath[0]" :class="classes[component.xpath[0]]" class="py-1">
+                {{ component.text }}
+            </component>
+        </template>
+    </div>
 </template>
 
 <style scoped></style>

@@ -234,7 +234,7 @@ function setType(type: SelectableElementType) {
 function isComponentType(component: ArticleComponent, type: SelectableElementType): boolean {
   switch (type) {
     case 'all':
-      return true;
+      return component.xpath[0] !== 'img';
     case 'p':
       return component.xpath[0] === 'p';
     case 'h':

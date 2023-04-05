@@ -21,7 +21,8 @@ const article = computed<Article>(() => props.article);
               </div>
             </dt>
             <dd class="mt-4 lg:col-span-11 lg:mt-0">
-              <p class="text-base leading-7 text-gray-600">{{ component.text }}</p>
+              <img :src="component.text" v-if="component.xpath[0] === 'img'" :alt="component.text">
+              <p v-else class="text-base leading-7 text-gray-600">{{ component.text }}</p>
             </dd>
           </div>
         </dl>

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { Article, ArticleComponent } from "~/intefaces/Article";
+import {  ArticleComponent, SingleArticle } from "~/intefaces/Article";
 import {
   computed,
   selectArticleComponent,
@@ -8,10 +8,10 @@ import {
   useSelectedArticleComponents
 } from "#imports";
 
-const props = defineProps<{ article: Article }>();
+const props = defineProps<{ article: SingleArticle }>();
 const selectedComponents = useSelectedArticleComponents();
 const answers = useArticleComponentsAnswers();
-const article = computed<Article>(() => props.article);
+const article = computed<SingleArticle>(() => props.article);
 
 const aiRequestCache = useAiRequestCache();
 
@@ -53,7 +53,8 @@ function inputChanged(event: InputEvent, component: ArticleComponent) {
               </div>
             </dt>
             <dd class="mt-4 lg:col-span-11 lg:mt-0">
-              <p class="text-base leading-7 text-gray-600 whitespace-pre-line	" :contenteditable="true"
+              <img :src="component.text" v-if="component.xpath[0] === 'img'" :alt="component.text">
+              <p v-else class="text-base leading-7 text-gray-600 whitespace-pre-line	" :contenteditable="true"
                  @input="(event) => inputChanged(event, component)">{{ component.text }}</p>
             </dd>
             <template v-if="selectedComponents.has(component.id)">
