@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { Article } from "~/intefaces/Article";
-import { getArticleTitle } from "~/composables/getArticleTitle";
 import { NewspaperIcon, } from '@heroicons/vue/20/solid'
 import {
   useModal,
@@ -8,13 +7,12 @@ import {
   useSelectedGpt3Contexts,
   useHeaderPrompt,
   useParagraphPrompt,
-  useCodePrompt, computed, useCodePromptEnabled, setQueue, handleError
+  useCodePrompt, computed, useCodePromptEnabled, setQueue, handleError, moveBetweenState
 } from "#imports";
 import axios from "axios";
 import { useArticles } from "~/composables/articles";
 import { uid } from "uid";
-
-const modal = useModal()
+import { closeModal } from "~/composables/modal";
 
 onMounted(() => {
   headerPrompt.value.value = 'Przetłumacz ten nagłówek z polskiego na angielski';
@@ -64,11 +62,6 @@ async function moveArticlesToQueue() {
 
   for (const {id} of props.articles) {
 
-    if(error) {
-      handleError(error);
-      return;
-    }
-
     const queue_id = uid();
 
     setQueue({
@@ -79,6 +72,7 @@ async function moveArticlesToQueue() {
 
     const article = articles.value.find((art) => art.id === id);
     if (article) {
+      const prevState = article.state;
       article.state = 'queued'
 
       try {
@@ -91,18 +85,22 @@ async function moveArticlesToQueue() {
             Authorization: `Bearer ${ token.value }`
           }
         });
+        moveBetweenState(1, prevState, 'queued');
+
+
       } catch (e) {
+        article.state = prevState;
         error = e;
       }
+    }
+
+    if(error) {
+      handleError(error);
+      return;
     }
   }
 
   closeModal()
-}
-
-function closeModal() {
-  modal.value.component = undefined;
-  modal.value.context = undefined;
 }
 
 const props = defineProps<{ articles: Article[] }>();

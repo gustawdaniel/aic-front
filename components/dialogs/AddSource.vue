@@ -5,12 +5,8 @@ import { handleError, useModal, useToken } from "#imports";
 import axios from "axios";
 import {useSources} from "~/composables/sources";
 import {Source} from "~/intefaces/Source";
+import { closeModal } from "~/composables/modal";
 
-function closeModal() {
-  const modal = useModal();
-  modal.value.component = undefined
-  modal.value.context = undefined
-}
 
 const config = useRuntimeConfig();
 
@@ -26,7 +22,7 @@ function addHttps(url: string): string {
 async function addSource() {
   if (url) {
     try {
-      const {data} = await axios.post<Omit<Source, '_count'>>(config.public.apiUrl + '/source', {url: addHttps(url.value)}, {
+      const {data} = await axios.post<Omit<Source, '_count'>>(config.public.scrapingUrl + '/source', {url: addHttps(url.value)}, {
         headers: {
           Authorization: `Bearer ${ token.value }`
         }

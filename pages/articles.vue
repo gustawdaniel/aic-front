@@ -4,7 +4,14 @@ import Loading from 'vue-loading-overlay';
 import 'vue-loading-overlay/dist/css/index.css';
 import axios from "axios";
 import { useToken } from "~/composables/token";
-import { computed, getMessage, handleError, useModal, useRouter, useSearch, useSelectedGpt3Contexts } from "#imports";
+import {
+  computed,
+  handleError,
+  useArticleStats,
+  useModal,
+  useRouter,
+  useSearch,
+} from "#imports";
 import {
   CheckIcon,
   XMarkIcon,
@@ -14,9 +21,8 @@ import {
   TrashIcon,
   ChevronDownIcon
 } from '@heroicons/vue/24/solid'
-import { Article, ArticleState } from "~/intefaces/Article";
+import { Article } from "~/intefaces/Article";
 import { ucFirst } from "~/composables/ucfirst";
-import { getArticleTitle } from "~/composables/getArticleTitle";
 import MoveToQueue from "~/components/dialogs/MoveToQueue.vue";
 import { useArticles } from "~/composables/articles";
 import PublishConfirmation from "~/components/dialogs/PublishConfirmation.vue";
@@ -25,18 +31,12 @@ import { ClickableLink } from "~/intefaces/ClickableLink";
 import WordHighlighter from "vue-word-highlighter";
 
 import {
-  Dialog,
-  DialogPanel,
-  Disclosure,
-  DisclosureButton,
-  DisclosurePanel,
   Menu,
   MenuButton,
   MenuItem,
   MenuItems,
-  TransitionChild,
-  TransitionRoot,
 } from '@headlessui/vue'
+import { loadArticleStats } from "~/composables/articleStats";
 
 const router = useRouter();
 
@@ -71,31 +71,15 @@ function setSort(value: SortType): void {
 }
 
 
-type ArticleGroupSingleResult = {
-  _count: {
-    _all: 253
-  },
-  state: ArticleState
-}
 
-const articleStats = ref<Array<ArticleGroupSingleResult>>([])
+
+const articleStats = useArticleStats()
 
 const currentUrl = ref<string>('/article?state=new');
 const link = ref<string>("");
 const search = useSearch();
 
-async function loadArticleStats() {
-  try {
-    const res = await axios.get(config.public.apiUrl + `/article-count-by-stata?${ new URLSearchParams({search: search.value.text}) }`, {
-      headers: {
-        Authorization: `Bearer ${ token.value }`
-      }
-    });
-    articleStats.value = res.data;
-  } catch (e) {
-    handleError(e)
-  }
-}
+
 
 async function loadArticles(address: string = '') {
   isLoading.value = true;
@@ -126,7 +110,7 @@ async function loadArticles(address: string = '') {
 
 onMounted(() => {
   loadArticles();
-  loadArticleStats()
+  loadArticleStats(search.value.text)
   search.value.enabled = true;
 });
 
@@ -158,7 +142,7 @@ watch(search.value, (p, n) => {
   throttle(1000, (s: { enabled: boolean, text: string }) => {
     console.log('s:', s);
     loadArticles(articlesUrl.value)
-    loadArticleStats()
+    loadArticleStats(search.value.text)
   })(n);
 })
 
@@ -279,6 +263,7 @@ function getDateFromMongoId(id: string) {
         <div class="mx-auto max-w-7xl sm:px-6 lg:px-8 mt-4">
           <!-- Replace with your content -->
           <div>
+
             <div class="sm:hidden">
               <label for="tabs" class="sr-only">Select a tab</label>
               <!-- Use an "onChange" listener to redirect the user to the selected tab URL. -->

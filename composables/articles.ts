@@ -36,6 +36,10 @@ export async function syncArticle() {
     throw new Error(`No article to sync`);
   }
 
+  if(article.value.state === 'new') {
+    article.value.state = 'verification';
+  }
+
   try {
     await axios.put(config.public.apiUrl + `/article/${ article.value.id }`, {
       components: article.value.components,

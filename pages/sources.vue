@@ -18,7 +18,7 @@ const sources = useSources()
 async function loadSources() {
   try {
     isLoading.value = true;
-    const {data} = await axios.get(config.public.apiUrl + '/source', {
+    const {data} = await axios.get(config.public.scrapingUrl + '/source', {
       headers: {
         Authorization: `Bearer ${ token.value }`
       }
@@ -46,7 +46,7 @@ async function askForDelete(sourceId: string) {
   if (yes) {
     try {
       isLoading.value = true;
-      await axios.delete(config.public.apiUrl + '/source/' + sourceId, {
+      await axios.delete(config.public.scrapingUrl + '/source/' + sourceId, {
         headers: {
           Authorization: `Bearer ${ token.value }`
         }
@@ -65,7 +65,7 @@ async function request(sourceId: string) {
   console.log("sourceId", sourceId);
   try {
     isLoading.value = true;
-    const {data} = await axios.post(config.public.apiUrl + '/request', {
+    const {data} = await axios.post(config.public.scrapingUrl + '/request', {
       source_id: sourceId
     }, {
       headers: {

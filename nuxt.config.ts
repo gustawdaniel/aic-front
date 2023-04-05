@@ -4,7 +4,8 @@ export default defineNuxtConfig({
     runtimeConfig: {
         public: {
             googleClientId: process.env.GOOGLE_CLIENT_ID ?? '',
-            apiUrl: process.env.API_URL ?? ''
+            apiUrl: process.env.API_URL ?? '',
+            scrapingUrl: process.env.SCRAPING_URL ?? ''
         }
     },
     ssr: false,

@@ -1,10 +1,10 @@
 <script lang="ts" setup>
-import { Article } from "~/intefaces/Article";
+import { Article, ArticleComponent } from "~/intefaces/Article";
 import {
   computed,
   selectArticleComponent,
   useAiRequestCache,
-  useArticleComponentsAnswers,
+  useArticleComponentsAnswers, useSelectedArticle,
   useSelectedArticleComponents
 } from "#imports";
 
@@ -14,15 +14,32 @@ const answers = useArticleComponentsAnswers();
 const article = computed<Article>(() => props.article);
 
 const aiRequestCache = useAiRequestCache();
+
+function inputChanged(event: InputEvent, component: ArticleComponent) {
+  const selectedArticle = useSelectedArticle();
+
+  console.log("inputChanged", event);
+  if(event.target) {
+    const newText = (event.target as HTMLParagraphElement).innerText;
+
+    if(selectedArticle.value) {
+      const componentToModify = selectedArticle.value.components.find((comp) => comp.id === component.id);
+      if(componentToModify ) {
+        componentToModify.text = newText;
+      }
+    }
+  }
+}
+
 </script>
 
 <template>
   <div class="mx-auto max-w-7xl sm:px-6 lg:px-8 mt-4">
     <div class="bg-white">
       <div class=" divide-y">
-<!--        <pre>{{selectedComponents}}</pre>-->
-<!--        <pre>{{ article.components }}</pre>-->
-<!--        <pre>{{aiRequestCache}}</pre>-->
+        <!--        <pre>{{selectedComponents}}</pre>-->
+        <!--        <pre>{{ article.components }}</pre>-->
+        <!--        <pre>{{aiRequestCache}}</pre>-->
         <dl class="  divide-y">
           <div v-for="(component, number) in article.components" :key="number"
                class="py-3 lg:grid lg:grid-cols-12 lg:gap-8"
@@ -36,12 +53,14 @@ const aiRequestCache = useAiRequestCache();
               </div>
             </dt>
             <dd class="mt-4 lg:col-span-11 lg:mt-0">
-              <p class="text-base leading-7 text-gray-600 whitespace-pre-line	" :contenteditable="true">{{ component.text }}</p>
+              <p class="text-base leading-7 text-gray-600 whitespace-pre-line	" :contenteditable="true"
+                 @input="(event) => inputChanged(event, component)">{{ component.text }}</p>
             </dd>
             <template v-if="selectedComponents.has(component.id)">
               <dt class="lg:col-span-1"></dt>
               <dd class="mt-4 lg:col-span-11 lg:mt-0">
-                <textarea class="text-base leading-7 w-full text-gray-600" :value="answers.has(component.id) ? answers.get(component.id).message.content : ''"/>
+                <textarea class="text-base leading-7 w-full text-gray-600"
+                          :value="answers.has(component.id) ? answers.get(component.id).message.content : ''"/>
               </dd>
             </template>
           </div>

@@ -1,18 +1,13 @@
 <script lang="ts" setup>
 import {DialogTitle} from '@headlessui/vue'
 import {InformationCircleIcon} from '@heroicons/vue/24/outline'
-import {getMessage, handleError, useModal, useToken} from "#imports";
+import { handleError, useToken} from "#imports";
 import axios from "axios";
 import {useTargets} from "~/composables/targets";
 import {Target} from "~/intefaces/Target";
-import Swal from "sweetalert2";
 import {fixUrl} from "~/composables/helpers";
+import { closeModal } from "~/composables/modal";
 
-function closeModal() {
-  const modal = useModal();
-  modal.value.component = undefined
-  modal.value.context = undefined
-}
 
 const config = useRuntimeConfig();
 

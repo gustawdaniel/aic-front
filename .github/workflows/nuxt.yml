@@ -19,6 +19,7 @@ jobs:
           ENV=$(cat << EOF
           GOOGLE_CLIENT_ID=980557834863-garc39g6lp2ir8hlseppmerels6eeql6.apps.googleusercontent.com
           API_URL=https://api.aic.preciselab.io          
+          SCRAPING_URL=https://scraping.aic.preciselab.io          
           EOF
           )
           echo "$ENV" > .env
@@ -38,6 +39,7 @@ jobs:
           ENV=$(cat << EOF
           VIRTUAL_HOST=app.aic.preciselab.io
           LETSENCRYPT_HOST=app.aic.preciselab.io
+          SCRAPING_URL=https://scraping.aic.preciselab.io
           VIRTUAL_PORT=3200
           NITRO_HOST=0.0.0.0
           NITRO_PORT=3200
