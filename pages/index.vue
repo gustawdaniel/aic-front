@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Loading from 'vue-loading-overlay';
 import 'vue-loading-overlay/dist/css/index.css';
-import axios, {AxiosResponse} from "axios";
+import axios from "axios";
 import {useToken} from "~/composables/token";
 import {handleError, ref, useQueues, useUser} from '#imports';
 import dayjs from "dayjs";

@@ -1,7 +1,5 @@
 <script lang="ts" setup>
-
 import {useUser} from "~/composables/user";
-import {useToken} from "#imports";
 
 const user = useUser();
 </script>

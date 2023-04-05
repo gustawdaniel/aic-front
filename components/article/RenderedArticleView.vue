@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { Article, SingleArticle } from "~/intefaces/Article";
+import { SingleArticle } from "~/intefaces/Article";
 import { computed } from "#imports";
 
 const props = defineProps<{ article: Pick<SingleArticle, 'components'> }>();

@@ -4,13 +4,11 @@ import axios from "axios";
 import Loading from 'vue-loading-overlay';
 import 'vue-loading-overlay/dist/css/index.css';
 import { User } from "~/intefaces/User";
-import Swal from "sweetalert2";
 
 const users = ref<User[]>([]);
 const isLoading = ref<boolean>(false);
 const config = useRuntimeConfig()
 const token = useToken();
-
 
 async function loadUsers() {
   try {
@@ -33,7 +31,6 @@ onMounted(() => {
 })
 
 import { KeyIcon } from '@heroicons/vue/20/solid'
-import { getMessage } from "~/composables/getMessage";
 
 const user = useUser();
 
@@ -108,7 +105,7 @@ async function impersonate(userId: string) {
       </li>
     </ul>
 
-  <div class="mx-6">
+  <div class="mx-4 mt-4">
     <router-link to="/errors" type="button"
                  class="rounded bg-red-800 px-2 w-full py-1 text-sm font-semibold text-white shadow-sm hover:bg-red-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-800">
       Errors
