@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-
 import {
   useSelectedGpt3Prompts,
   useSelectedArticleComponents,

@@ -85,8 +85,8 @@ async function changeRole(userId: string, role: string, checked: boolean, name: 
              :can-cancel="false"
              :is-full-page="true"/>
 
-    <pre class="break-words whitespace-pre-wrap bg-gray-100 text-gray-900 p-4 rounded-lg shadow-lg"><code
-            class="text-sm font-mono">{{ token }}</code></pre>
+<!--    <pre class="break-words whitespace-pre-wrap bg-gray-100 text-gray-900 p-4 rounded-lg shadow-lg"><code-->
+<!--            class="text-sm font-mono">{{ token }}</code></pre>-->
 
     <ul role="list" class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 mt-10">
         <li v-for="person in users" :key="person.email"
