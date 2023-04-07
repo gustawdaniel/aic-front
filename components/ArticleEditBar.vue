@@ -275,7 +275,7 @@ function deselectAllComponents() {
 </script>
 
 <template>
-  <div>
+  <div class="overflow-auto">
     <Gpt3PromptManager/>
 
     <HistoricalMessagesSwitch class="py-2 px-1"/>
