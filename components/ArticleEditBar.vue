@@ -231,7 +231,7 @@ function splitSelectedComponents() {
         xpath: getXpathOfText(textPart),
         ai_requests: c.ai_requests
       }
-    })
+    }).filter((part) => part.text.length > 0);
 
     article.value?.components.splice(articleComponentIndex, 1, ...splitComponent);
     splitComponent.forEach(component => selectedArticleComponents.value.set(component.id, component));
