@@ -1,6 +1,7 @@
 import { SingleArticle } from "~/intefaces/Article";
 
 export function getArticleTitle(article: SingleArticle): string {
+  if(article.title) return article.title;
   const header = article.components.find((el) => el.xpath.includes('h1'));
   if (header) return header.text;
   const header2 = article.components.find((el) => el.xpath.includes('h2'));

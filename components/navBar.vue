@@ -13,10 +13,15 @@ const route = useRoute()
 console.log("route", route.path);
 
 const navigation = [
-  {name: 'Dashboard', href: '/', current: route.path === '/'},
-  {name: 'Sources', href: '/sources', current: route.path === '/sources'},
-  {name: 'Targets', href: '/targets', current: route.path === '/targets'},
-  {name: 'Articles', href: '/articles', current: route.path === '/articles'},
+  {name: 'Dashboard', href: '/', current: route.path === '/', visible: true},
+  {
+    name: 'Sources',
+    href: '/sources',
+    current: route.path === '/sources',
+    visible: user.value && user.value?.roles.includes('hacker')
+  },
+  {name: 'Targets', href: '/targets', current: route.path === '/targets', visible: true},
+  {name: 'Articles', href: '/articles', current: route.path === '/articles', visible: true},
 ]
 const userNavigation = [
   {name: 'Your Profile', href: '/profile'},
@@ -52,7 +57,7 @@ const serach = useSearch();
                  src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=600" alt="Your Company"/>
           </div>
           <div class="hidden sm:-my-px sm:ml-6 sm:flex sm:space-x-8">
-            <nuxt-link v-for="item in navigation" :key="item.name" :to="item.href"
+            <nuxt-link v-for="item in navigation.filter(n => n.visible)" :key="item.name" :to="item.href"
                        :class="[item.current ? 'border-indigo-500 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700', 'inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium']"
                        :aria-current="item.current ? 'page' : undefined">{{ item.name }}
             </nuxt-link>
@@ -94,7 +99,8 @@ const serach = useSearch();
               </MenuButton>
             </div>
             <transition enter-active-class="transition ease-out duration-200"
-                        enter-from-class="transform opacity-0 scale-95" enter-to-class="transform opacity-100 scale-100"
+                        enter-from-class="transform opacity-0 scale-95"
+                        enter-to-class="transform opacity-100 scale-100"
                         leave-active-class="transition ease-in duration-75"
                         leave-from-class="transform opacity-100 scale-100"
                         leave-to-class="transform opacity-0 scale-95">
@@ -102,7 +108,8 @@ const serach = useSearch();
                   class="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                 <MenuItem v-for="item in userNavigation" :key="item.name" v-slot="{ active }">
                   <nuxt-link :to="item.href"
-                             :class="[active ? 'bg-gray-100' : '', 'block px-4 py-2 text-sm text-gray-700']">{{
+                             :class="[active ? 'bg-gray-100' : '', 'block px-4 py-2 text-sm text-gray-700']">
+                    {{
                       item.name
                     }}
                   </nuxt-link>

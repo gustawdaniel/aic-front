@@ -152,7 +152,7 @@ async function addTarget() {
           <div>
             <label for="company-website" class="block text-sm font-medium text-gray-700">Password</label>
             <div class="relative mt-1 rounded-md shadow-sm">
-              <input type="text"
+              <input type="password"
                      class="block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                      v-model="password"
               />
@@ -164,7 +164,7 @@ async function addTarget() {
           <div>
             <label for="company-website" class="block text-sm font-medium text-gray-700">Admin Api Key</label>
             <div class="relative mt-1 rounded-md shadow-sm">
-              <input type="text"
+              <input type="password"
                      class="block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                      v-model="apiKey"
               />

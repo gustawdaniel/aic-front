@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 
-import {useRoute, useToken} from "#imports";
+import { syncArticle, useModal, useRoute, useToken } from "#imports";
 
 const route = useRoute()
 const article = useSelectedArticle();
@@ -15,6 +15,7 @@ import DeveloperArticleView from "~/components/article/DeveloperArticleView.vue"
 import IframeArticleView from "~/components/article/IframeArticleView.vue";
 import EditArticleView from "~/components/article/EditArticleView.vue";
 import { getSingleArticle, useSelectedArticle } from "~/composables/articles";
+import PublishConfirmation from "~/components/dialogs/PublishConfirmation.vue";
 
 async function getArticle() {
   isLoading.value = true;
@@ -26,7 +27,7 @@ onMounted(() => {
   getArticle()
 })
 
-const views:Array<{id: SingleArticleView, title: string}> = [
+const views: Array<{ id: SingleArticleView, title: string }> = [
   {id: 'default', title: 'Default View'},
   {id: 'components', title: 'Components View'},
   {id: 'rendered', title: 'Rendered View'},
@@ -43,7 +44,20 @@ function selectView(view: SingleArticleView) {
   selectedView.value = view;
 }
 
+async function publish() {
+  await syncArticle()
+  const modal = useModal();
+  modal.value.context = {
+    articles: [article.value]
+  }
+  modal.value.component = PublishConfirmation;
+}
 
+function setTitle(event: InputEvent): void {
+  if(article.value && event.target instanceof HTMLElement) {
+    article.value.title = event.target.innerText;
+  }
+}
 </script>
 
 <template>
@@ -58,9 +72,12 @@ function selectView(view: SingleArticleView) {
     <div class="py-10" v-if="article">
       <header>
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h1 class="text-3xl font-bold leading-tight tracking-tight text-gray-900">
-            {{ article ? article.title : 'Loading...' }}
-          </h1>
+          <div class="flex">
+            <h1 class="grow text-3xl font-bold leading-tight tracking-tight text-gray-900" :contenteditable="true" @input="(event) => setTitle(event)">
+              {{ article ? article.title : 'Loading...' }}
+            </h1>
+            <button class="btn bg-amber-400" @click="publish">Publish</button>
+          </div>
 
           <div>
             <fieldset class="mt-4">
@@ -88,8 +105,9 @@ function selectView(view: SingleArticleView) {
         <HistoryArticleView v-else-if="selectedView === 'history'" :article="article"/>
         <div v-else-if="selectedView === 'default'" class="grid grid-cols-5 gap-4">
           <ArticleEditBar class="h-screen sticky top-0"/>
-          <EditArticleView :article="article" class="col-span-2"/>
-          <IframeArticleView :article="article" class="col-span-2"/>
+          <EditArticleView :article="article"
+                           :class="{'col-span-2' : article.request_id, 'col-span-4 w-full': !article.request_id}"/>
+          <IframeArticleView v-if="article.request_id" :article="article" class="col-span-2"/>
         </div>
       </main>
     </div>

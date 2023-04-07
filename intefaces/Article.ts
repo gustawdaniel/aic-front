@@ -27,6 +27,7 @@ export interface SingleArticle {
   components: ArticleComponent[]
   user_id: string,
   request_id: string,
+  title: string,
   versions: Array<ArticleVersion>
   request: {
     url: string,

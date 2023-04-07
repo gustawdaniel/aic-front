@@ -1,7 +1,6 @@
 <script lang="ts" setup>
-import {Article} from "~/intefaces/Article";
+import { Article, SingleArticle } from "~/intefaces/Article";
 import {NewspaperIcon, CheckIcon} from '@heroicons/vue/20/solid'
-import {getArticleTitle} from "~/composables/getArticleTitle";
 import {useToken} from "~/composables/token";
 import {useTargets} from "~/composables/targets";
 import axios from "axios";
@@ -9,7 +8,7 @@ import Swal from "sweetalert2";
 import dayjs from "dayjs";
 import {handleError} from "#imports";
 
-const props = defineProps<{ articles: Article[] }>()
+const props = defineProps<{ articles: (Article|SingleArticle)[] }>()
 
 const config = useRuntimeConfig()
 const token = useToken();

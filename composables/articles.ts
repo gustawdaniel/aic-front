@@ -44,6 +44,7 @@ export async function syncArticle() {
     await axios.put(config.public.apiUrl + `/article/${ article.value.id }`, {
       components: article.value.components,
       state: article.value.state,
+      title: article.value.title,
     }, {
       headers: {
         Authorization: `Bearer ${ token.value }`
@@ -51,5 +52,6 @@ export async function syncArticle() {
     });
   } catch (e) {
     handleError(e)
+    throw e;
   }
 }

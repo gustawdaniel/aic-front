@@ -164,6 +164,16 @@ function append() {
   }
 }
 
+function remove() {
+  if (!article.value || !selectedArticleComponents.value.size) {
+    return Swal.fire('Select component!', `You have to click on article and select component!`, 'info')
+  }
+  for (const [k, v] of selectedArticleComponents.value.entries()) {
+    const index = article.value.components.findIndex((x) => x.id === k);
+    article.value.components.splice(index, 1)
+  }
+}
+
 async function save() {
   try {
     await syncArticle()
@@ -196,22 +206,30 @@ function mergeSelectedComponents() {
   selectedArticleComponents.value.set(id, mergedComponent)
 }
 
+function getXpathOfText(text: string): ('p'|'li')[] {
+  return text.startsWith('-') ? ['li'] : ['p'];
+}
+
+function skipDashOnStart(text: string):string {
+  return text.replace(/^\s*-\s*/, '');
+}
+
 function splitSelectedComponents() {
   const components = [...selectedArticleComponents.value.entries()];
   selectedArticleComponents.value.clear();
   answers.value.clear();
 
   for (const [v, c] of components) {
-    const textParts = c.text.split(`\n\n`);
+    const textParts = c.text.split(`\n`);
 
     const articleComponentIndex: number = article.value?.components.findIndex((x) => x.id === v) ?? 0;
     const splitComponent = textParts.map((textPart, index) => {
       const id = index === 0 ? v : uid();
       return {
         id,
-        text: textPart,
+        text: skipDashOnStart(textPart),
         finish_reason: 'stop',
-        xpath: ['p'],
+        xpath: getXpathOfText(textPart),
         ai_requests: c.ai_requests
       }
     })
@@ -275,10 +293,11 @@ function deselectAllComponents() {
     <button class="btn w-full my-1" @click="mergeSelectedComponents">Join to single components</button>
     <button class="btn w-full my-1" @click="splitSelectedComponents">Spread to many components</button>
 
-    <div class="grid grid-cols-3 gap-2">
+    <div class="grid grid-cols-4 gap-2">
       <button :disabled="actionsDisabled" class="btn" @click="prepend">Prepend</button>
       <button :disabled="actionsDisabled" class="btn" @click="replace">Replace</button>
       <button :disabled="actionsDisabled" class="btn" @click="append">Append</button>
+      <button :disabled="actionsDisabled" class="btn" @click="remove">Remove</button>
     </div>
 
     <button class="btn w-full mt-1" @click="save">Save Article</button>

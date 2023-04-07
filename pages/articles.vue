@@ -71,14 +71,11 @@ function setSort(value: SortType): void {
 }
 
 
-
-
 const articleStats = useArticleStats()
 
 const currentUrl = ref<string>('/article?state=new');
 const link = ref<string>("");
 const search = useSearch();
-
 
 
 async function loadArticles(address: string = '') {
@@ -172,7 +169,6 @@ function confirmPublication(articleId: string) {
     articles: [article]
   }
   modal.value.component = PublishConfirmation;
-
 }
 
 async function rejectArticle(articleId: string) {
@@ -229,10 +225,10 @@ async function remove(articleId: string) {
 
 const visibleArticles = computed<Article[]>(() => {
   return articles.value
-      .filter(art => art.state === openTab.value)
-      .filter(art => search.value.text ? (
-          [art.source_url, art.title].some(field => field.toLowerCase().includes(search.value.text.toLowerCase()))
-      ) : true)
+    .filter(art => art.state === openTab.value)
+    .filter(art => search.value.text ? (
+      [art.source_url, art.title].some(field => field.toLowerCase().includes(search.value.text.toLowerCase()))
+    ) : true)
 })
 
 function getDateFromMongoId(id: string) {
@@ -240,7 +236,19 @@ function getDateFromMongoId(id: string) {
   return new Date(unixTimestamp * 1000);
 }
 
+async function createArticle() {
+  try {
+    const {data} = await axios.post(config.public.apiUrl + `/article`, {state: 'new', components: []}, {
+      headers: {
+        Authorization: `Bearer ${ token.value }`
+      }
+    });
+    await router.push(`/article/${ data.id }`);
+  } catch (error) {
+    handleError(error);
+  }
 
+}
 </script>
 
 <template>
@@ -255,8 +263,13 @@ function getDateFromMongoId(id: string) {
     <div class="py-10">
       <header>
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h1 class="text-3xl font-bold leading-tight tracking-tight text-gray-900">Articles</h1>
-          <p class="mt-2 text-sm text-gray-700">Articles parsed form requests that you send to your sources.</p>
+          <div class="flex">
+            <div class="grow">
+              <h1 class="text-3xl font-bold leading-tight tracking-tight text-gray-900">Articles</h1>
+              <p class="mt-2 text-sm text-gray-700">Articles parsed form requests that you send to your sources.</p>
+            </div>
+            <button class="btn bg-indigo-400" @click="createArticle">Write article</button>
+          </div>
         </div>
       </header>
       <main>

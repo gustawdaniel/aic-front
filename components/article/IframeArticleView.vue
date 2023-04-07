@@ -1,10 +1,10 @@
 <script lang="ts" setup>
-import {Article} from "~/intefaces/Article";
+import {  SingleArticle } from "~/intefaces/Article";
 import {computed} from "#imports";
 
-const props = defineProps<{article: Article}>();
+const props = defineProps<{article: SingleArticle}>();
 
-const article = computed<Article>(() => props.article);
+const article = computed<SingleArticle>(() => props.article);
 </script>
 
 <template>

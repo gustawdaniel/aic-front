@@ -1,13 +1,10 @@
 <script setup lang="ts">
 import Loading from 'vue-loading-overlay';
 import 'vue-loading-overlay/dist/css/index.css';
-import axios from "axios";
 import {useToken} from "~/composables/token";
-import {handleError, ref, useQueues, useUser} from '#imports';
+import {handleError, ref, useUser} from '#imports';
 import dayjs from "dayjs";
-import {uid} from "uid";
-import {setQueue} from "~/composables/queues";
-import {DialogMessage, DialogResponse} from "~/intefaces/Gpt3Interface";
+import {DialogMessage} from "~/intefaces/Gpt3Interface";
 import {askGpt3} from "~/composables/askGpt3";
 
 const isLoading = ref<boolean>(false);
@@ -55,31 +52,6 @@ async function scrollToBottom() {
   if (conversations.value) {
     await nextTick();
     conversations.value.scrollTop = conversations.value.scrollHeight;
-  }
-}
-
-const queues = useQueues()
-
-async function testQueue() {
-  const index = uid();
-
-  setQueue({
-    type: 'debug',
-    id: index,
-    progress: 0
-  })
-
-  try {
-    await axios.post<DialogResponse, undefined, { id: string, wait: number }>(config.public.apiUrl + '/queue/debug', {
-      id: index,
-      wait: 2000,
-    }, {
-      headers: {
-        Authorization: `Bearer ${ token.value }`
-      }
-    });
-  } catch (e) {
-    handleError(e)
   }
 }
 
@@ -151,12 +123,8 @@ const user = useUser();
             </div>
           </div>
 
-          <button class="btn" @click="testQueue">Button</button>
 
 
-          <pre>{{ queues }}</pre>
-
-          <!-- /End replace -->
         </div>
       </main>
     </div>

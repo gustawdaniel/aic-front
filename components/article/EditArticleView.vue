@@ -7,6 +7,7 @@ import {
   useArticleComponentsAnswers, useSelectedArticle,
   useSelectedArticleComponents
 } from "#imports";
+import { uid } from "uid";
 
 const props = defineProps<{ article: SingleArticle }>();
 const selectedComponents = useSelectedArticleComponents();
@@ -28,6 +29,21 @@ function inputChanged(event: InputEvent, component: ArticleComponent) {
         componentToModify.text = newText;
       }
     }
+  }
+}
+
+function addArticleComponent() {
+  const selectedArticle = useSelectedArticle();
+
+  if(selectedArticle.value) {
+    const newComponent: ArticleComponent = {
+      id: uid(),
+      xpath: ['p'],
+      text: '',
+      finish_reason: '',
+      ai_requests: []
+    }
+    selectedArticle.value.components.push(newComponent);
   }
 }
 
@@ -65,6 +81,7 @@ function inputChanged(event: InputEvent, component: ArticleComponent) {
               </dd>
             </template>
           </div>
+          <button class="btn bg-indigo-500" @click="addArticleComponent">Add component</button>
         </dl>
       </div>
     </div>
